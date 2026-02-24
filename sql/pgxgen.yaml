@@ -1,0 +1,47 @@
+version: "1"
+sqlc:
+  - schema_dir: sqlite/migrations
+    models:
+      replace_sqlc_nullable_types: true
+      move:
+        output_dir: ../internal/models
+        output_file_name: models_gen.go
+        package_name: models
+        package_path: github.com/stickpro/kyp/internal/models
+    crud:
+      auto_remove_generated_files: true
+      exclude_table_name_from_methods: true
+      tables:
+        # vault_meta
+        vault_meta:
+          output_dir: sqlite/queries/vault_meta
+          primary_column: id
+          methods:
+            get:
+            create:
+              returning: "*"
+            update:
+              skip_columns:
+                - id
+                - created_at
+                - updated_at
+              returning: "*"
+              column_values:
+                updated_at: now()
+            delete:
+        # entries
+        entries:
+          output_dir: sqlite/queries/entries
+          primary_column: id
+          methods:
+            get:
+            create:
+            update:
+              skip_columns:
+                - id
+                - created_at
+                - updated_at
+              returning: "*"
+              column_values:
+                updated_at: now()
+            delete:
