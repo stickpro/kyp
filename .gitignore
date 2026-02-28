@@ -7,6 +7,9 @@ vendor
 *config.yaml
 configs/config.yaml
 *.db
+*.db-shm
+*.db-wal
+*.cast
 .netrc
 .tmp
 /tmp

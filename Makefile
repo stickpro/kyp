@@ -42,6 +42,17 @@ build-import:
 
 build-all: build build-server build-import
 
+# cross-compile kyp for all platforms → .bin/dist/
+build-cross:
+	$(eval LDFLAGS := -s -w -X main.version=$(VERSION) -X main.commitHash=$(COMMIT_HASH))
+	mkdir -p .bin/dist
+	GOOS=linux   GOARCH=amd64  CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o .bin/dist/kyp_linux_amd64   ./cmd/kyp
+	GOOS=linux   GOARCH=arm64  CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o .bin/dist/kyp_linux_arm64   ./cmd/kyp
+	GOOS=darwin  GOARCH=amd64  CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o .bin/dist/kyp_darwin_amd64  ./cmd/kyp
+	GOOS=darwin  GOARCH=arm64  CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o .bin/dist/kyp_darwin_arm64  ./cmd/kyp
+	GOOS=windows GOARCH=amd64  CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o .bin/dist/kyp_windows_amd64.exe ./cmd/kyp
+	@echo "Built binaries in .bin/dist/"
+
 run: build
 	$(OUT_BIN) $(filter-out $@,$(MAKECMDGOALS))
 
