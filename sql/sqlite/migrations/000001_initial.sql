@@ -1,3 +1,5 @@
+-- +goose Up
+
 CREATE TABLE vault_meta (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
@@ -35,3 +37,12 @@ CREATE TABLE sync_state (
     server_url      TEXT,
     last_synced_at  INTEGER
 );
+
+-- +goose Down
+
+DROP INDEX IF EXISTS idx_entries_updated_at;
+DROP INDEX IF EXISTS idx_entries_deleted_at;
+
+DROP TABLE IF EXISTS sync_state;
+DROP TABLE IF EXISTS entries;
+DROP TABLE IF EXISTS vault_meta;

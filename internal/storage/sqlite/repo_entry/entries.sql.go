@@ -12,7 +12,7 @@ import (
 )
 
 const getWithPaginate = `-- name: GetWithPaginate :many
-SELECT id, title, username, password, url, notes, totp_secret, totp_issuer, totp_algorithm, totp_digits, totp_period, created_at, updated_at, deleted_at FROM entries WHERE deleted_at IS NULL ORDER BY name DESC LIMIT ? OFFSET ?
+SELECT id, title, username, password, url, notes, totp_secret, totp_issuer, totp_algorithm, totp_digits, totp_period, created_at, updated_at, deleted_at FROM entries WHERE deleted_at IS NULL ORDER BY title ASC LIMIT ? OFFSET ?
 `
 
 type GetWithPaginateParams struct {

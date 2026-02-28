@@ -5,6 +5,8 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"fmt"
+	"math/big"
+	"strings"
 
 	"golang.org/x/crypto/argon2"
 )
@@ -79,4 +81,43 @@ func CheckVerifier(verifier, key []byte) bool {
 		return false
 	}
 	return string(decrypted) == "verification"
+}
+
+const (
+	lowercase = "abcdefghijklmnopqrstuvwxyz"
+	uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	digits    = "0123456789"
+	symbols   = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+)
+
+func GeneratePassword(length int, useUpper, useDigits, useSymbols bool) (string, error) {
+	if length <= 0 {
+		return "", fmt.Errorf("password length must be greater than 0")
+	}
+
+	var alphabet strings.Builder
+	alphabet.WriteString(lowercase)
+	if useUpper {
+		alphabet.WriteString(uppercase)
+	}
+	if useDigits {
+		alphabet.WriteString(digits)
+	}
+	if useSymbols {
+		alphabet.WriteString(symbols)
+	}
+
+	chars := alphabet.String()
+	alphabetSize := big.NewInt(int64(len(chars)))
+
+	var password strings.Builder
+	for i := 0; i < length; i++ {
+		idx, err := rand.Int(rand.Reader, alphabetSize)
+		if err != nil {
+			return "", fmt.Errorf("generate random index: %w", err)
+		}
+		password.WriteByte(chars[idx.Int64()])
+	}
+
+	return password.String(), nil
 }

@@ -63,12 +63,17 @@ func (v *Vault) Open(ctx context.Context, password, name string) error {
 	}
 	key := crypto.DeriveKey([]byte(password), meta.Salt)
 	if !crypto.CheckVerifier(meta.Verifier, key) {
-		return fmt.Errorf("invalid master massword")
+		return fmt.Errorf("invalid master password")
 	}
 	v.masterKey = key
 	v.meta = meta
 
 	return nil
+}
+
+func (v *Vault) IsInitialized(ctx context.Context) bool {
+	meta, err := v.storage.Vault().GetAll(ctx)
+	return err == nil && len(meta) > 0
 }
 
 func (v *Vault) Close() {

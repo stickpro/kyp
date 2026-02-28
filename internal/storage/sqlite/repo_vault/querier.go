@@ -14,7 +14,7 @@ type Querier interface {
 	Create(ctx context.Context, arg CreateParams) (*models.VaultMetum, error)
 	Delete(ctx context.Context, id string) error
 	Get(ctx context.Context, id string) (*models.VaultMetum, error)
-	GetAll(ctx context.Context) (*models.VaultMetum, error)
+	GetAll(ctx context.Context) ([]*models.VaultMetum, error)
 	GetByName(ctx context.Context, name string) (*models.VaultMetum, error)
 	Update(ctx context.Context, arg UpdateParams) (*models.VaultMetum, error)
 }

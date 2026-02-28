@@ -53,6 +53,7 @@ func InitLocalStorage(dbPath string) (ILocalStorage, error) {
 func runMigrations(db *sql.DB) error {
 	params := kypsql.SqliteMigrationParams()
 	goose.SetBaseFS(params.EmbedFs)
+	goose.SetLogger(goose.NopLogger())
 
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		return fmt.Errorf("set dialect: %w", err)

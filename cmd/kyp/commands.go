@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/stickpro/kyp/internal/app"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stickpro/kyp/internal/config"
+	"github.com/stickpro/kyp/internal/storage/sqlite"
+	tui "github.com/stickpro/kyp/internal/tui/app"
+	"github.com/stickpro/kyp/internal/vault"
 	"github.com/stickpro/kyp/pkg/cfg"
 	"github.com/stickpro/kyp/pkg/logger"
 	"github.com/urfave/cli/v3"
@@ -31,7 +34,18 @@ func commands(currentAppVersion, appName, _ string) []*cli.Command {
 					_ = l.Sync()
 				}()
 
-				app.Run(ctx, conf, l)
+				storage, err := sqlite.InitLocalStorage("kyp.db")
+				if err != nil {
+					return err
+				}
+				defer storage.Close()
+
+				v := vault.Init(storage)
+				m := tui.New(v)
+
+				if _, err := tea.NewProgram(&m).Run(); err != nil {
+					return err
+				}
 				return nil
 			},
 		},

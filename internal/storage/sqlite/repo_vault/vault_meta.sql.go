@@ -11,22 +11,38 @@ import (
 	"github.com/stickpro/kyp/internal/models"
 )
 
-const getAll = `-- name: GetAll :one
+const getAll = `-- name: GetAll :many
 SELECT id, name, salt, verifier, created_at, updated_at FROM vault_meta
 `
 
-func (q *Queries) GetAll(ctx context.Context) (*models.VaultMetum, error) {
-	row := q.db.QueryRowContext(ctx, getAll)
-	var i models.VaultMetum
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Salt,
-		&i.Verifier,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return &i, err
+func (q *Queries) GetAll(ctx context.Context) ([]*models.VaultMetum, error) {
+	rows, err := q.db.QueryContext(ctx, getAll)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*models.VaultMetum{}
+	for rows.Next() {
+		var i models.VaultMetum
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Salt,
+			&i.Verifier,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getByName = `-- name: GetByName :one
