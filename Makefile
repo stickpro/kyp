@@ -37,7 +37,10 @@ build:
 build-server:
 	go mod download && $(BUILD_ENV) go build $(GO_OPT_BASE) -o $(OUT_BIN_SERVER) ./cmd/kypd
 
-build-all: build build-server
+build-import:
+	go build -o ./.bin/kyp-import ./cmd/import
+
+build-all: build build-server build-import
 
 run: build
 	$(OUT_BIN) $(filter-out $@,$(MAKECMDGOALS))

@@ -1,0 +1,21 @@
+folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp
+Work,0,login,GitHub,Main work account,,0,https://github.com,john.doe@work.com,X9#mK2$pL8vN,JBSWY3DPEHPK3PXP
+Work,0,login,GitLab,Self-hosted instance,,0,https://gitlab.work.com,john.doe@work.com,Tr4!qW7@nZ1x,MFRA22LONZSXE3DF
+Work,1,login,Jira,Project tracker,,0,https://work.atlassian.net,john.doe@work.com,Yb6^hR3*cV9m,ORSXG5BRGI3TSNBV
+Work,0,login,Confluence,,, 0,https://confluence.work.com,john.doe@work.com,Pk5&lQ2#wA8s,KRUGKIDROVUWG2ZA
+Work,0,login,Slack,Work workspace,,0,https://work.slack.com,john.doe@work.com,Dz7@eU4$fB6n,GEZDGNBVGY3TQOJQ
+Personal,1,login,Google,Personal Gmail,,0,https://accounts.google.com,janedoe92@gmail.com,Wm3!rT6^gC1p,JBSWY3DPEHPK3PYP
+Personal,0,login,Apple ID,,, 0,https://appleid.apple.com,janedoe92@icloud.com,Hs8#kO5*yD4q,NB2HI4DTHIXS653XFY
+Personal,0,login,Dropbox,,, 0,https://dropbox.com,janedoe92@gmail.com,Vn2$mJ9!aE7w,ORSXG5BRGQ4TKNBV
+Personal,1,login,Twitter / X,,, 0,https://x.com,@janedoe,Fp4^bI1@zH3t,MFRA24LONZSXE3LF
+Personal,0,login,Instagram,,, 0,https://instagram.com,janedoe92,Qr6!cL8#xG5v,KRUGKIDROVUWG4ZB
+Finance,1,login,Tinkoff Bank,,, 0,https://tinkoff.ru,+79001234567,Ua9*dN2$sF7k,GEZDGNBVGY3TQPJQ
+Finance,1,login,Sber,,, 0,https://online.sberbank.ru,+79001234567,Bj5@eO3^hM1r,JBSWY3EPEHPK3PXP
+Finance,0,login,PayPal,,, 0,https://paypal.com,janedoe92@gmail.com,Cy7#fP6!lK4w,NB2HI4DTHIXS6V3X
+Finance,0,login,Binance,,, 0,https://binance.com,janedoe92@gmail.com,Xz2$gQ9*mB8n,ORSXG5BRGQ4TENBV
+Finance,0,login,Coinbase,,, 0,https://coinbase.com,janedoe92@gmail.com,Wt4^hR1@cV5p,KRUGKIDROVUWG5ZC
+DevTools,0,login,AWS,Root account,,0,https://aws.amazon.com,janedoe@company.com,Sk6!iL3#yD9q,GEZDGNBVGY3TQQJQ
+DevTools,0,login,Cloudflare,,, 0,https://dash.cloudflare.com,janedoe@company.com,Nd8@jM5$xF2w,JBSWY3FPEHPK3PXP
+DevTools,1,login,Vercel,,, 0,https://vercel.com,janedoe@company.com,Pb1#kN7^gA4r,MFRA26LONZSXE3NF
+DevTools,0,login,Docker Hub,,, 0,https://hub.docker.com,janedoe92,Qe3$lO2!bC6t,ORSXG5BRGQ4TFNBV
+DevTools,0,login,npm,Public account,,0,https://npmjs.com,janedoe92,Tv5^mP8@dE1v,KRUGKIDROVUWG6ZD

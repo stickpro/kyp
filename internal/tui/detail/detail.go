@@ -217,10 +217,10 @@ func formatCode(code string) string {
 }
 
 var (
-	labelStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("246")).Width(16)
-	valueStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
+	labelStyle  = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "238", Dark: "246"}).Width(16)
+	valueStyle  = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "232", Dark: "255"})
 	copiedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("82"))
-	copyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("243"))
+	copyStyle   = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "241", Dark: "243"})
 )
 
 func field(label, value string) string {
