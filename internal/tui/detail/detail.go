@@ -17,6 +17,9 @@ type BackMsg struct{}
 type EditMsg struct {
 	Entry vault.EntryDTO
 }
+type DeleteMsg struct {
+	ID string
+}
 
 type tickMsg time.Time
 type copiedMsg string
@@ -34,10 +37,11 @@ func clearCopied() tea.Cmd {
 }
 
 type Model struct {
-	entry        vault.EntryDTO
-	showPassword bool
-	now          time.Time
-	copied       string
+	entry         vault.EntryDTO
+	showPassword  bool
+	now           time.Time
+	copied        string
+	confirmDelete bool
 }
 
 func New(entry vault.EntryDTO) Model {
@@ -61,6 +65,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "q", "esc", "backspace":
+			if m.confirmDelete {
+				m.confirmDelete = false
+				return m, nil
+			}
 			return m, func() tea.Msg { return BackMsg{} }
 		case "e":
 			return m, func() tea.Msg { return EditMsg{Entry: m.entry} }
@@ -74,6 +82,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.entry.TOTPSecret != nil {
 				return m, m.copyTOTP()
 			}
+		case "d":
+			m.confirmDelete = true
+		case "y":
+			if m.confirmDelete && m.entry.ID != nil {
+				id := *m.entry.ID
+				return m, func() tea.Msg { return DeleteMsg{ID: id} }
+			}
+		case "n":
+			m.confirmDelete = false
 		}
 
 	case copiedMsg:
@@ -132,10 +149,10 @@ func (m *Model) View() string {
 
 	b.WriteString(title + "\n\n")
 
-	b.WriteString(copyableField("Username", strVal(m.entry.Username, "—"), "u", m.copied == "Username"))
+	b.WriteString(copyableField("Username", strVal(m.entry.Username, "-"), "u", m.copied == "Username"))
 	b.WriteString(copyableField("Password", passwordVal(m.entry.Password, m.showPassword), "c", m.copied == "Password"))
-	b.WriteString(field("URL", strVal(m.entry.URL, "—")))
-	b.WriteString(field("Notes", strVal(m.entry.Notes, "—")))
+	b.WriteString(field("URL", strVal(m.entry.URL, "-")))
+	b.WriteString(field("Notes", strVal(m.entry.Notes, "-")))
 
 	if m.entry.TOTPSecret != nil {
 		b.WriteString("\n")
@@ -144,21 +161,27 @@ func (m *Model) View() string {
 
 	b.WriteString("\n")
 
-	hints := []string{
-		"u: copy login",
-		"c: copy password",
-	}
-	if m.entry.TOTPSecret != nil {
-		hints = append(hints, "t: copy TOTP")
-	}
-	hints = append(hints, "p: show/hide password", "e: edit", "esc: back")
+	if m.confirmDelete {
+		b.WriteString(tuistyles.ErrStyle.Render("Delete this entry? ") +
+			tuistyles.OkStyle.Render("[y] yes") + "  " +
+			tuistyles.HintStyle.Render("[n/esc] no"))
+	} else {
+		hints := []string{
+			"u: copy login",
+			"c: copy password",
+		}
+		if m.entry.TOTPSecret != nil {
+			hints = append(hints, "t: copy TOTP")
+		}
+		hints = append(hints, "p: show/hide", "e: edit", "d: delete", "esc: back")
 
-	hint := tuistyles.HintStyle.Render(strings.Join(hints, " • "))
-	b.WriteString(hint)
+		hint := tuistyles.HintStyle.Render(strings.Join(hints, " • "))
+		b.WriteString(hint)
 
-	if m.copied != "" {
-		notice := tuistyles.OkStyle.Render(fmt.Sprintf("  ✓ %s copied", m.copied))
-		b.WriteString(notice)
+		if m.copied != "" {
+			notice := tuistyles.OkStyle.Render(fmt.Sprintf("  ✓ %s copied", m.copied))
+			b.WriteString(notice)
+		}
 	}
 
 	return lipgloss.NewStyle().Margin(1, 2).Render(b.String())
@@ -244,7 +267,7 @@ func strVal(s *string, fallback string) string {
 
 func passwordVal(s *string, show bool) string {
 	if s == nil || *s == "" {
-		return "—"
+		return "-"
 	}
 	if show {
 		return *s

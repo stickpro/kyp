@@ -2,7 +2,6 @@ package styles
 
 import "github.com/charmbracelet/lipgloss"
 
-// AdaptiveColor: Light — для светлого фона, Dark — для тёмного.
 var (
 	ActiveStyle = lipgloss.NewStyle().
 			Background(lipgloss.Color("99")).
@@ -15,15 +14,12 @@ var (
 
 	TitleStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("99"))
 
-	// Подсказки (tab: next • esc: back …)
 	HintStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.AdaptiveColor{Light: "241", Dark: "243"})
 
-	// Лейблы полей (Username:, Password: …)
 	LabelStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.AdaptiveColor{Light: "238", Dark: "246"})
 
-	// Значения полей
 	ValueStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.AdaptiveColor{Light: "232", Dark: "255"})
 
