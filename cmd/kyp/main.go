@@ -25,7 +25,7 @@ func main() {
 
 	app := &cli.Command{
 		Name:        appName,
-		Description: "Keep Your Passwords — password manager",
+		Description: "Keep Your Passwords - password manager",
 		Version:     getBuildVersion(),
 		Suggest:     true,
 		Flags: []cli.Flag{

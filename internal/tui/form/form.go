@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/stickpro/kyp/internal/crypto"
 	"github.com/stickpro/kyp/internal/tui/styles"
 	"github.com/stickpro/kyp/internal/vault"
 )
@@ -103,6 +104,24 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 
+		case tea.KeyCtrlS:
+			return m, m.submit()
+
+		case tea.KeyCtrlG:
+			if m.focused == fieldPassword {
+				pwd, err := crypto.GeneratePassword(20, true, true, true)
+				if err == nil {
+					m.inputs[fieldPassword].SetValue(pwd)
+				}
+			}
+
+		case tea.KeyCtrlP:
+			if m.inputs[fieldPassword].EchoMode == textinput.EchoPassword {
+				m.inputs[fieldPassword].EchoMode = textinput.EchoNormal
+			} else {
+				m.inputs[fieldPassword].EchoMode = textinput.EchoPassword
+			}
+
 		case tea.KeyEsc:
 			return m, func() tea.Msg { return BackMsg{} }
 
@@ -151,7 +170,7 @@ func (m *Model) View() string {
 	}
 
 	title := styles.TitleStyle.Render(titleText)
-	hint := styles.HintStyle.Render("tab: next field • enter: confirm • esc: back • ctrl+c: quit")
+	hint := styles.HintStyle.Render("tab: next • ctrl+s: save • ctrl+g: generate • ctrl+p: show/hide password • esc: back")
 
 	var errStr string
 	if m.err != nil {

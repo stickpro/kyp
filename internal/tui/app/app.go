@@ -94,6 +94,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.screen = screenForm
 		return m, m.form.Init()
 
+	case detail.DeleteMsg:
+		id := msg.ID
+		m.detail = nil
+		m.screen = screenList
+		return m, func() tea.Msg {
+			_ = m.vault.DeleteEntry(context.Background(), id)
+			return listscreen.ReloadCmd(m.vault)()
+		}
+
 	case detail.BackMsg:
 		m.screen = screenList
 		return m, listscreen.ReloadCmd(m.vault)

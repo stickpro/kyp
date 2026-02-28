@@ -3,7 +3,7 @@
 ![Build](https://img.shields.io/github/actions/workflow/status/stickpro/kyp/ci.yml)
 
 
-# kyp — Keep Your Passwords
+# kyp - Keep Your Passwords
 
 A local-first, terminal-based password manager with TOTP support. All data is stored in an encrypted SQLite database on your machine. Nothing leaves your device.
 
@@ -11,22 +11,22 @@ A local-first, terminal-based password manager with TOTP support. All data is st
 
 ## Features
 
-- **Fully local** — vault is a single SQLite file, no cloud required
-- **AES-256-GCM encryption** — every sensitive field (username, password, URL, notes, TOTP secret) is encrypted individually before being written to disk
-- **Argon2id key derivation** — master password is never stored; the key is derived at runtime and zeroed from memory on exit
-- **TOTP support** — store TOTP secrets, view live codes with countdown timer, copy to clipboard with one key
-- **Clipboard integration** — copy login, password or TOTP code without revealing it on screen
-- **Password visibility toggle** — show/hide password in the detail view
-- **Bitwarden CSV import** — import your existing vault with optional folder filter
-- **Fuzzy search** — built-in filtering across all entries
-- **Tab navigation** — keyboard-only, no mouse required
-- **Adaptive colors** — UI works correctly on both light and dark terminals
+- **Fully local** - vault is a single SQLite file, no cloud required
+- **AES-256-GCM encryption** - every sensitive field (username, password, URL, notes, TOTP secret) is encrypted individually before being written to disk
+- **Argon2id key derivation** - master password is never stored; the key is derived at runtime and zeroed from memory on exit
+- **TOTP support** - store TOTP secrets, view live codes with countdown timer, copy to clipboard with one key
+- **Clipboard integration** - copy login, password or TOTP code without revealing it on screen
+- **Password visibility toggle** - show/hide password in the detail view
+- **Bitwarden CSV import** - import your existing vault with optional folder filter
+- **Fuzzy search** - built-in filtering across all entries
+- **Tab navigation** - keyboard-only, no mouse required
+- **Adaptive colors** - UI works correctly on both light and dark terminals
 
 > **Sync server (`kypd`) and GUI client are under development.**
 
 ## How it works
 
-The vault is a single SQLite file. All sensitive fields are encrypted with AES-256-GCM before being written to disk. The encryption key is never stored — it is derived from your master password at runtime using Argon2id and discarded when the application exits.
+The vault is a single SQLite file. All sensitive fields are encrypted with AES-256-GCM before being written to disk. The encryption key is never stored - it is derived from your master password at runtime using Argon2id and discarded when the application exits.
 
 The master password is verified through a small encrypted token stored alongside the vault metadata. If decryption of that token succeeds, the password is correct and the derived key is kept in memory for the session.
 

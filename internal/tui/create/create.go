@@ -37,23 +37,28 @@ type Model struct {
 	height  int
 }
 
+const inputWidth = 32
+
 func New(v *vault.Vault) Model {
 	iName := textinput.New()
 	iName.Placeholder = "Vault name"
+	iName.Width = inputWidth
 	iName.SetValue("default")
 
 	iPassword := textinput.New()
 	iPassword.Placeholder = "Master password"
+	iPassword.Width = inputWidth
 	iPassword.EchoMode = textinput.EchoPassword
 	iPassword.Focus()
 
 	iConfirm := textinput.New()
 	iConfirm.Placeholder = "Confirm master password"
+	iConfirm.Width = inputWidth
 	iConfirm.EchoMode = textinput.EchoPassword
 
 	return Model{
 		inputs:  [3]textinput.Model{iName, iPassword, iConfirm},
-		focused: fieldName,
+		focused: fieldPassword,
 		vault:   v,
 	}
 }
@@ -110,7 +115,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	title := styles.TitleStyle.Render("Keep Your Passwords — Create Vault")
+	title := styles.TitleStyle.Render("Keep Your Passwords - Create Vault")
 	hint := styles.HintStyle.Render("tab: next field • enter: confirm • ctrl+c: quit")
 
 	var errStr string
@@ -129,13 +134,15 @@ func (m *Model) View() string {
 
 	buttons := lipgloss.JoinHorizontal(lipgloss.Top, createBtn, "  ", cancelBtn)
 
-	content := fmt.Sprintf("%s\n\n%s\n\n%s\n\n%s\n\n%s",
+	box := lipgloss.NewStyle().Width(inputWidth + 6)
+
+	content := box.Render(fmt.Sprintf("%s\n\n%s\n\n%s\n\n%s\n\n%s",
 		title,
 		m.inputs[fieldName].View()+"\n"+m.inputs[fieldPassword].View()+"\n"+m.inputs[fieldConfirm].View(),
 		buttons,
 		hint,
 		errStr,
-	)
+	))
 
 	if m.width == 0 || m.height == 0 {
 		return content

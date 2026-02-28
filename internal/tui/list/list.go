@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -25,7 +26,7 @@ func (i Item) Description() string {
 		parts = append(parts, *i.entry.URL)
 	}
 	if len(parts) == 0 {
-		return "—"
+		return "-"
 	}
 	return fmt.Sprintf("%s", joinParts(parts))
 }
@@ -74,6 +75,20 @@ func New(v *vault.Vault, width, height int) Model {
 		Foreground(lipgloss.Color("255")).
 		Background(lipgloss.Color("99")).
 		Padding(0, 1)
+
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "open")),
+			key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new")),
+		}
+	}
+	l.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "open entry")),
+			key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "new entry")),
+			key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
+		}
+	}
 
 	return Model{
 		list:  l,

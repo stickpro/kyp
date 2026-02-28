@@ -25,7 +25,7 @@ func main() {
 
 	app := &cli.Command{
 		Name:        appName,
-		Description: "Keep Your Passwords — sync server",
+		Description: "Keep Your Passwords - sync server",
 		Version:     getBuildVersion(),
 		Suggest:     true,
 		Flags: []cli.Flag{

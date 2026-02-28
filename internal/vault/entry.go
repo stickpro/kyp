@@ -15,13 +15,12 @@ type EntryDTO struct {
 	ID    *string
 	Title string
 
-	// nullable — могут отсутствовать
 	Username *string
 	Password *string
 	URL      *string
 	Notes    *string
 
-	// TOTP — secret и issuer nullable, остальные NOT NULL с дефолтами
+	// TOTP - secret and issuer nullable
 	TOTPSecret    *string
 	TOTPIssuer    *string
 	TOTPAlgorithm string
