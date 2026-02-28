@@ -1,3 +1,8 @@
+![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)
+![License](https://img.shields.io/github/license/stickpro/kyp)
+![Build](https://img.shields.io/github/actions/workflow/status/stickpro/kyp/ci.yml)
+
+
 # kyp — Keep Your Passwords
 
 A local-first, terminal-based password manager with TOTP support. All data is stored in an encrypted SQLite database on your machine. Nothing leaves your device.
