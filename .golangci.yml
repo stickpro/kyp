@@ -73,10 +73,6 @@ linters:
       disabled-checks:
         - hugeParam    # too noisy for TUI models passed by value
 
-issues:
-  max-issues-per-linter: 50
-  max-same-issues: 5
-
   exclusions:
     rules:
       # Test files — relax some rules
@@ -94,3 +90,7 @@ issues:
     paths:
       - vendor
       - \.bin
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 5
