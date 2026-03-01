@@ -2,7 +2,7 @@ package totp
 
 import (
 	"crypto/hmac"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // SHA1 is required by the TOTP spec (RFC 6238)
 	"encoding/base32"
 	"encoding/binary"
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func Code(secret string, t time.Time, digits int, period int) (string, error) {
+func Code(secret string, t time.Time, digits, period int) (string, error) {
 	key, err := base32.StdEncoding.
 		WithPadding(base32.NoPadding).
 		DecodeString(strings.ToUpper(strings.ReplaceAll(secret, " ", "")))
@@ -30,7 +30,7 @@ func Code(secret string, t time.Time, digits int, period int) (string, error) {
 
 	offset := h[len(h)-1] & 0x0f
 	code := int(binary.BigEndian.Uint32(h[offset:offset+4]) & 0x7fffffff)
-	code = code % int(math.Pow10(digits))
+	code %= int(math.Pow10(digits))
 
 	return fmt.Sprintf("%0*d", digits, code), nil
 }

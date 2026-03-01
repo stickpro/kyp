@@ -2,4 +2,4 @@ package vault
 
 import "errors"
 
-var NotOpen = errors.New("vault is not open")
+var ErrNotOpen = errors.New("vault is not open")

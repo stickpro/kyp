@@ -89,7 +89,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case btnCancel:
 				return m, tea.Quit
 			case btnCreate:
-				return m, m.submit()
+				cmd := m.submit()
+				return m, cmd
 			default:
 				m.setFocus(m.focused + 1)
 			}

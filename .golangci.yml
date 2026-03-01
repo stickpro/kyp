@@ -1,0 +1,96 @@
+version: "2"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - .*\.pb\.go
+      - .*\.connect\.go
+      - .bin
+      - api
+      - schema
+      - sql
+      - testdata
+      - internal/contracts
+      - third_party$
+      - builtin$
+      - examples$
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - bodyclose
+    - copyloopvar
+    - durationcheck
+    - nilerr
+    - noctx
+    - rowserrcheck
+    - sqlclosecheck
+    - errorlint
+    - gosec
+    - misspell
+    - unconvert
+    - unparam
+    - whitespace
+    - prealloc
+    - goconst
+    - gocritic
+  settings:
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment  # not worth the struct ugliness
+
+    gosec:
+      excludes:
+        - G115  # integer overflow conversion (noisy with uint casts)
+
+    errorlint:
+      errorf: true
+      asserts: true
+      comparison: true
+
+    wrapcheck:
+      ignore-package-globs:
+        - github.com/stickpro/kyp/*
+
+    goconst:
+      min-occurrences: 3
+
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+        - style
+      disabled-checks:
+        - hugeParam    # too noisy for TUI models passed by value
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 5
+
+  exclusions:
+    rules:
+      # Test files — relax some rules
+      - path: "_test\\.go"
+        linters:
+          - gosec
+          - wrapcheck
+          - errcheck
+
+      # Generated SQL files
+      - path: "internal/db/"
+        linters:
+          - wrapcheck
+
+    paths:
+      - vendor
+      - \.bin

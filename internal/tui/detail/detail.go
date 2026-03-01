@@ -75,12 +75,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "p", " ":
 			m.showPassword = !m.showPassword
 		case "u":
-			return m, m.copyField("Username", m.entry.Username)
+			cmd := m.copyField("Username", m.entry.Username)
+			return m, cmd
 		case "c":
-			return m, m.copyField("Password", m.entry.Password)
+			cmd := m.copyField("Password", m.entry.Password)
+			return m, cmd
 		case "t":
 			if m.entry.TOTPSecret != nil {
-				return m, m.copyTOTP()
+				cmd := m.copyTOTP()
+				return m, cmd
 			}
 		case "d":
 			m.confirmDelete = true
@@ -110,10 +113,13 @@ func (m *Model) copyField(name string, val *string) tea.Cmd {
 		return nil
 	}
 	v := *val
-	return func() tea.Msg {
-		_ = clipboard.WriteAll(v)
-		return copiedMsg(name)
-	}
+	return tea.Batch(
+		func() tea.Msg {
+			_ = clipboard.WriteAll(v)
+			return copiedMsg(name)
+		},
+		clearCopied(),
+	)
 }
 
 func (m *Model) copyTOTP() tea.Cmd {
@@ -127,14 +133,17 @@ func (m *Model) copyTOTP() tea.Cmd {
 		period = 30
 	}
 	now := m.now
-	return func() tea.Msg {
-		code, err := totp.Code(secret, now, digits, period)
-		if err != nil {
-			return nil
-		}
-		_ = clipboard.WriteAll(code)
-		return copiedMsg("TOTP")
-	}
+	return tea.Batch(
+		func() tea.Msg {
+			code, err := totp.Code(secret, now, digits, period)
+			if err != nil {
+				return nil
+			}
+			_ = clipboard.WriteAll(code)
+			return copiedMsg("TOTP")
+		},
+		clearCopied(),
+	)
 }
 
 func (m *Model) View() string {

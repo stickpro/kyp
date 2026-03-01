@@ -53,7 +53,11 @@ func commands(currentAppVersion, appName, _ string) []*cli.Command {
 				if err != nil {
 					return err
 				}
-				defer storage.Close()
+				defer func() {
+					if err := storage.Close(); err != nil {
+						fmt.Fprintf(os.Stderr, "failed to close storage: %v\n", err)
+					}
+				}()
 
 				v := vault.Init(storage)
 				m := tui.New(v)
@@ -84,7 +88,7 @@ func resolveDBPath(flagVal, confVal string) (string, error) {
 		path = filepath.Join(dataDir, "kyp", "kyp.db")
 	}
 
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return "", fmt.Errorf("create db dir: %w", err)
 	}
 

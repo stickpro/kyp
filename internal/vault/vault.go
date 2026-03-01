@@ -24,7 +24,7 @@ func Init(storage sqlite.ILocalStorage) *Vault {
 	}
 }
 
-func (v *Vault) Create(ctx context.Context, password string, name string) error {
+func (v *Vault) Create(ctx context.Context, password, name string) error {
 	salt, err := crypto.GenerateSalt()
 	if err != nil {
 		return fmt.Errorf("generate salt: %w", err)
@@ -80,5 +80,4 @@ func (v *Vault) Close() {
 	clear(v.masterKey)
 	v.masterKey = nil
 	v.meta = nil
-
 }

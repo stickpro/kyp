@@ -37,7 +37,11 @@ func GenerateYamlTemplate(cfg any, filePath string, opts ...Option) error {
 
 	buf := bytes.NewBuffer(nil)
 	enc := yaml.NewEncoder(buf)
-	defer enc.Close()
+	defer func() {
+		if err := enc.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close encoder: %v\n", err)
+		}
+	}()
 
 	enc.SetIndent(2)
 
@@ -45,7 +49,7 @@ func GenerateYamlTemplate(cfg any, filePath string, opts ...Option) error {
 		return fmt.Errorf("failed to encode yaml: %w", err)
 	}
 
-	if err := os.WriteFile(filePath, buf.Bytes(), 0600); err != nil {
+	if err := os.WriteFile(filePath, buf.Bytes(), 0o600); err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
 

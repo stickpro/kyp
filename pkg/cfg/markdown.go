@@ -41,7 +41,7 @@ func GenerateMarkdown(cfg any, filePath string, opts ...Option) error {
 }
 
 func (c *config) generateMarkdown(l *aconfig.Loader, filePath string) error {
-	var table [][]string //nolint:prealloc
+	var table [][]string //nolint:prealloc // we don't know the number of rows in advance, so we can't preallocate the table
 
 	table = append(table, []string{
 		"**Name**", "**Required**", "**Secret**", "**Default value**", "**Usage**", "**Example**",
@@ -121,7 +121,7 @@ func (c *config) generateMarkdown(l *aconfig.Loader, filePath string) error {
 	_, _ = fmt.Fprintln(c.out, out.String())
 
 	if filePath != "" {
-		if err := os.WriteFile(filePath, []byte(out.String()), 0600); err != nil {
+		if err := os.WriteFile(filePath, []byte(out.String()), 0o600); err != nil {
 			return err
 		}
 	}

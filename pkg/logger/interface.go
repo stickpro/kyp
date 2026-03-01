@@ -30,7 +30,7 @@ type ExtendedLogger interface {
 }
 
 // Logger common interface.
-type Logger interface { //nolint:interfacebloat
+type Logger interface { //nolint:interfacebloat // It's common for loggers to have many methods.
 	Debug(args ...any)
 	Debugln(args ...any)
 	Debugf(template string, args ...any)

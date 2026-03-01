@@ -16,7 +16,7 @@ type EntryDTO struct {
 	Title string
 
 	Username *string
-	Password *string
+	Password *string //nolint:gosec // we need to handle password as string for bubbletea textinput, but we encrypt it before storing
 	URL      *string
 	Notes    *string
 
@@ -30,7 +30,7 @@ type EntryDTO struct {
 
 func (v *Vault) CreateEntry(ctx context.Context, d EntryDTO) error {
 	if v.meta == nil {
-		return NotOpen
+		return ErrNotOpen
 	}
 
 	enc, err := v.encryptEntry(d)
@@ -74,7 +74,7 @@ func (v *Vault) CreateEntry(ctx context.Context, d EntryDTO) error {
 
 func (v *Vault) UpdateEntry(ctx context.Context, id string, d EntryDTO) error {
 	if v.meta == nil {
-		return NotOpen
+		return ErrNotOpen
 	}
 
 	enc, err := v.encryptEntry(d)
@@ -116,7 +116,7 @@ func (v *Vault) UpdateEntry(ctx context.Context, id string, d EntryDTO) error {
 
 func (v *Vault) GetEntry(ctx context.Context, id string) (*EntryDTO, error) {
 	if v.meta == nil {
-		return nil, NotOpen
+		return nil, ErrNotOpen
 	}
 
 	entry, err := v.storage.Entries().Get(ctx, id)
@@ -133,7 +133,7 @@ func (v *Vault) GetEntry(ctx context.Context, id string) (*EntryDTO, error) {
 
 func (v *Vault) ListEntries(ctx context.Context, limit, offset int64) ([]EntryDTO, error) {
 	if v.meta == nil {
-		return nil, NotOpen
+		return nil, ErrNotOpen
 	}
 	entrys, err := v.storage.Entries().GetWithPaginate(ctx, repo_entry.GetWithPaginateParams{
 		Limit:  limit,
@@ -156,7 +156,7 @@ func (v *Vault) ListEntries(ctx context.Context, limit, offset int64) ([]EntryDT
 
 func (v *Vault) DeleteEntry(ctx context.Context, id string) error {
 	if v.meta == nil {
-		return NotOpen
+		return ErrNotOpen
 	}
 	return v.storage.Entries().Delete(ctx, id)
 }
@@ -206,7 +206,7 @@ func encryptOptional(s *string, key []byte) ([]byte, error) {
 	return crypto.Encrypt([]byte(*s), key)
 }
 
-func decryptOptional(data []byte, key []byte) (*string, error) {
+func decryptOptional(data, key []byte) (*string, error) {
 	if data == nil {
 		return nil, nil
 	}

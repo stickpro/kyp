@@ -2,7 +2,6 @@ package list
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -28,7 +27,7 @@ func (i Item) Description() string {
 	if len(parts) == 0 {
 		return "-"
 	}
-	return fmt.Sprintf("%s", joinParts(parts))
+	return joinParts(parts)
 }
 
 func (i Item) FilterValue() string {
@@ -103,16 +102,18 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "enter":
-			if i, ok := m.list.SelectedItem().(Item); ok {
-				e := i.Entry()
-				return m, func() tea.Msg { return EntrySelectedMsg{Entry: e} }
+		if m.list.FilterState() != list.Filtering {
+			switch msg.String() {
+			case "ctrl+c", "q":
+				return m, tea.Quit
+			case "enter":
+				if i, ok := m.list.SelectedItem().(Item); ok {
+					e := i.Entry()
+					return m, func() tea.Msg { return EntrySelectedMsg{Entry: e} }
+				}
+			case "n":
+				return m, func() tea.Msg { return NewEntryMsg{} }
 			}
-		case "n":
-			return m, func() tea.Msg { return NewEntryMsg{} }
 		}
 
 	case tea.WindowSizeMsg:

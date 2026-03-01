@@ -105,7 +105,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case tea.KeyCtrlS:
-			return m, m.submit()
+			cmd := m.submit()
+			return m, cmd
 
 		case tea.KeyCtrlG:
 			if m.focused == fieldPassword {
@@ -136,7 +137,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case btnCancel:
 				return m, func() tea.Msg { return BackMsg{} }
 			case btnSave:
-				return m, m.submit()
+				cmd := m.submit()
+				return m, cmd
 			default:
 				m.setFocus(m.focused + 1)
 			}
