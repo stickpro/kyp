@@ -30,7 +30,9 @@ builds:
       - -s -w
 
 archives:
-  - formats: [tar.gz]
+  - id: kyp-archive
+    ids: [kyp, kyp-import]
+    formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
@@ -42,8 +44,74 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
+# Linux packages: .deb, .rpm, .apk
+nfpms:
+  - id: kyp-packages
+    package_name: kyp
+    ids: [kyp]
+    vendor: stickpro
+    homepage: https://github.com/stickpro/kyp
+    maintainer: stickpro
+    description: |-
+      Keep Your Passwords — local-first terminal password manager.
+      Encrypted SQLite vault, TOTP support, Bitwarden CSV import.
+    license: MIT
+    formats: [deb, rpm, apk]
+    bindir: /usr/bin
+    section: utils
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/kyp/LICENSE
+      - src: README.md
+        dst: /usr/share/doc/kyp/README.md
+
+# Homebrew tap  (requires repo: github.com/stickpro/homebrew-kyp)
+homebrew_casks:
+  - ids: [kyp-archive]
+    name: kyp
+    repository:
+      owner: stickpro
+      name: homebrew-kyp
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    commit_author:
+      name: goreleaser-bot
+      email: goreleaser@stickpro
+    homepage: https://github.com/stickpro/kyp
+    description: Local-first terminal password manager with TOTP support
+    license: MIT
+
+# Windows Scoop manifest  (requires repo: github.com/stickpro/scoop-kyp)
+scoops:
+  - ids: [kyp-archive]
+    repository:
+      owner: stickpro
+      name: scoop-kyp
+      token: "{{ .Env.SCOOP_TAP_TOKEN }}"
+    commit_author:
+      name: goreleaser-bot
+      email: goreleaser@stickpro
+    homepage: https://github.com/stickpro/kyp
+    description: Local-first terminal password manager with TOTP support
+    license: MIT
+
 changelog:
   sort: asc
+  use: github
+  groups:
+    - title: "New Features"
+      regexp: "^feat"
+      order: 0
+    - title: "Bug Fixes"
+      regexp: "^fix"
+      order: 1
+    - title: "Security"
+      regexp: "^sec"
+      order: 2
+    - title: "Performance"
+      regexp: "^perf"
+      order: 3
+    - title: "Other Changes"
+      order: 999
   filters:
     exclude:
       - "^docs:"
@@ -51,3 +119,27 @@ changelog:
       - "^chore:"
       - Merge pull request
       - Merge branch
+
+release:
+  github:
+    owner: stickpro
+    name: kyp
+  name_template: "{{.ProjectName}} {{.Tag}}"
+  header: |
+    ## Install
+
+    **macOS / Linux (Homebrew)**
+    ```bash
+    brew install stickpro/kyp/kyp
+    ```
+
+    **Go**
+    ```bash
+    go install github.com/stickpro/kyp/cmd/kyp@{{.Tag}}
+    ```
+
+    **Linux packages** — download `.deb` / `.rpm` / `.apk` below.
+
+    **All platforms** — download the archive for your OS/arch below, extract, and put `kyp` in your `$PATH`.
+  footer: |
+    **Full Changelog**: https://github.com/stickpro/kyp/compare/{{ .PreviousTag }}...{{ .Tag }}

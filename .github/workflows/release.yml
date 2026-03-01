@@ -1,3 +1,4 @@
+
 name: Release
 
 on:
@@ -17,10 +18,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: true
+
+      - name: Install nfpm dependencies
+        run: sudo apt-get install -y rpm
 
       - uses: goreleaser/goreleaser-action@v6
         with:
@@ -28,3 +32,5 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          SCOOP_TAP_TOKEN: ${{ secrets.SCOOP_TAP_TOKEN }}
