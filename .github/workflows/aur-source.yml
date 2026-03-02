@@ -1,0 +1,65 @@
+name: Update AUR source package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  aur-update:
+    name: Update kyp (AUR)
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pacman -Sy --noconfirm git base-devel go openssh curl
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Calculate checksum
+        id: checksum
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          SHA=$(curl -sL "https://github.com/stickpro/kyp/archive/v${VERSION}.tar.gz" | sha256sum | cut -d' ' -f1)
+          echo "sha256=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Clone AUR repo
+        run: |
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git clone ssh://aur@aur.archlinux.org/kyp.git /aur-kyp
+
+      - name: Update PKGBUILD
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          SHA=${{ steps.checksum.outputs.sha256 }}
+          cp packaging/aur/kyp/PKGBUILD /aur-kyp/PKGBUILD
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" /aur-kyp/PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" /aur-kyp/PKGBUILD
+          sed -i "s/^sha256sums=.*/sha256sums=('${SHA}')/" /aur-kyp/PKGBUILD
+
+      - name: Generate .SRCINFO
+        run: |
+          useradd -m builder
+          chown -R builder:builder /aur-kyp
+          cd /aur-kyp && sudo -u builder makepkg --printsrcinfo > .SRCINFO
+
+      - name: Push to AUR
+        run: |
+          cd /aur-kyp
+          git config user.name "goreleaser-bot"
+          git config user.email "goreleaser@stickpro"
+          git add PKGBUILD .SRCINFO
+          git diff --staged --quiet && echo "No changes" && exit 0
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git commit -m "update to ${{ steps.version.outputs.version }}"
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git push

@@ -114,26 +114,6 @@ aurs:
       install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
       install -Dm644 README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
 
-  # kyp: build from source
-  - name: kyp
-    homepage: https://github.com/stickpro/kyp
-    description: Local-first terminal password manager with TOTP support
-    license: MIT
-    private_key: "{{ .Env.AUR_SSH_KEY }}"
-    git_url: ssh://aur@aur.archlinux.org/kyp.git
-    provides: [kyp]
-    conflicts: [kyp-bin, kyp-git]
-    depends: [xclip, go]
-    commit_author:
-      name: goreleaser-bot
-      email: goreleaser@stickpro
-    url_template: "https://github.com/stickpro/kyp/archive/v{{ .Version }}.tar.gz"
-    package: |-
-      cd "${srcdir}/kyp-{{ .Version }}"
-      go build -ldflags "-s -w -X main.version={{ .Version }}" -o kyp ./cmd/kyp
-      install -Dm755 kyp "${pkgdir}/usr/bin/kyp"
-      install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
-      install -Dm644 README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
 
 changelog:
   sort: asc
