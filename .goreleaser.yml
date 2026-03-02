@@ -137,7 +137,7 @@ aurs:
 
 changelog:
   sort: asc
-  use: github
+  use: git
   groups:
     - title: "New Features"
       regexp: "^feat"
