@@ -32,7 +32,8 @@ func main() {
 			cli.HelpFlag,
 			cli.VersionFlag,
 		},
-		Commands: commands(version, appName, commitHash),
+		Commands:       commands(version, appName, commitHash),
+		DefaultCommand: "start",
 	}
 
 	if err := app.Run(ctx, os.Args); err != nil {

@@ -39,10 +39,19 @@ A terminal password manager that stores everything in an **encrypted SQLite file
 
 ## Install
 
-**macOS — Homebrew**
+**macOS / Linux — Homebrew**
 ```bash
 brew tap stickpro/kyp
 brew install kyp
+```
+
+**Arch Linux — AUR**
+```bash
+# pre-built binary (faster)
+yay -S kyp-bin
+
+# build from source
+yay -S kyp
 ```
 
 **Debian / Ubuntu**
@@ -73,6 +82,22 @@ go install github.com/stickpro/kyp/cmd/kyp@latest
 ```
 
 **Manual** — download the archive for your OS/arch from the [releases page](https://github.com/stickpro/kyp/releases), extract, and put `kyp` in your `$PATH`.
+
+## Vault location
+
+The vault is a single encrypted SQLite file. Default location:
+
+| OS | Path |
+|----|------|
+| Linux | `~/.local/share/kyp/kyp.db` (or `$XDG_DATA_HOME/kyp/kyp.db`) |
+| macOS | `~/Library/Application Support/kyp/kyp.db` |
+| Windows | `%APPDATA%\kyp\kyp.db` |
+
+Override with `--db`, env var `KYP_DB_PATH`, or `config.yaml`:
+```yaml
+storage:
+  db_path: /path/to/vault.db
+```
 
 ## How it works
 
