@@ -20,9 +20,11 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/aur
           chmod 600 ~/.ssh/aur
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          ssh-keyscan -t ed25519 aur.archlinux.org >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
       - name: Get version
         id: version
@@ -37,7 +39,8 @@ jobs:
 
       - name: Clone AUR repo
         run: |
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git clone ssh://aur@aur.archlinux.org/kyp.git /aur-kyp
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            git clone ssh://aur@aur.archlinux.org/kyp.git /aur-kyp
 
       - name: Update PKGBUILD
         run: |
@@ -61,5 +64,7 @@ jobs:
           git config user.email "goreleaser@stickpro"
           git add PKGBUILD .SRCINFO
           git diff --staged --quiet && echo "No changes" && exit 0
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git commit -m "update to ${{ steps.version.outputs.version }}"
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git push
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            git commit -m "update to ${{ steps.version.outputs.version }}"
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            git push
