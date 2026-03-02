@@ -59,7 +59,9 @@ jobs:
         run: |
           useradd -m builder
           chown -R builder:builder /aur-kyp
-          cd /aur-kyp && sudo -u builder makepkg --printsrcinfo > .SRCINFO
+          cd /aur-kyp && sudo -u builder makepkg --printsrcinfo > /tmp/SRCINFO
+          cp /tmp/SRCINFO /aur-kyp/.SRCINFO
+          chown -R root:root /aur-kyp
 
       - name: Push to AUR
         run: |
