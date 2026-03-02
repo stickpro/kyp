@@ -125,21 +125,3 @@ release:
     owner: stickpro
     name: kyp
   name_template: "{{.ProjectName}} {{.Tag}}"
-  header: |
-    ## Install
-
-    **macOS / Linux (Homebrew)**
-    ```bash
-    brew install stickpro/kyp/kyp
-    ```
-
-    **Go**
-    ```bash
-    go install github.com/stickpro/kyp/cmd/kyp@{{.Tag}}
-    ```
-
-    **Linux packages** — download `.deb` / `.rpm` / `.apk` below.
-
-    **All platforms** — download the archive for your OS/arch below, extract, and put `kyp` in your `$PATH`.
-  footer: |
-    **Full Changelog**: https://github.com/stickpro/kyp/compare/{{ .PreviousTag }}...{{ .Tag }}

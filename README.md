@@ -2,12 +2,25 @@
 ![License](https://img.shields.io/github/license/stickpro/kyp)
 ![Build](https://img.shields.io/github/actions/workflow/status/stickpro/kyp/ci.yml)
 
+# kyp — Keep Your Passwords
 
-# kyp - Keep Your Passwords
+> No cloud. No account. No trust required.
 
-A local-first, terminal-based password manager with TOTP support. All data is stored in an encrypted SQLite database on your machine. Nothing leaves your device.
+A terminal password manager that stores everything in an **encrypted SQLite file on your machine**. Your vault never touches a server.
+
 
 [![asciicast](https://asciinema.org/a/os0yIFyfkI7z7Brk.svg)](https://asciinema.org/a/os0yIFyfkI7z7Brk)
+
+## Why kyp
+
+| | kyp | pass | gopass | Bitwarden |
+|--|-----|------|--------|--------------|
+| Encrypted vault | AES-256-GCM | GPG | GPG | AES-256 |
+| TOTP built-in | ✅ | ❌ | ✅ | ❌ |
+| No cloud required | ✅ | ✅ | ✅ | ❌ |
+| Single binary | ✅ | ❌ | ❌ | ✅ |
+| No GPG setup | ✅ | ❌ | ❌ | ✅ |
+| TUI interface | ✅ | ❌ | ❌ | ❌ |
 
 ## Features
 
@@ -23,6 +36,43 @@ A local-first, terminal-based password manager with TOTP support. All data is st
 - **Adaptive colors** - UI works correctly on both light and dark terminals
 
 > **Sync server (`kypd`) and GUI client are under development.**
+
+## Install
+
+**macOS — Homebrew**
+```bash
+brew tap stickpro/kyp
+brew install kyp
+```
+
+**Debian / Ubuntu**
+```bash
+# Download the .deb from the latest release, then:
+sudo dpkg -i kyp_*_linux_amd64.deb
+```
+
+**RHEL / Fedora / CentOS**
+```bash
+sudo rpm -i kyp_*_linux_amd64.rpm
+```
+
+**Alpine**
+```bash
+apk add --allow-untrusted kyp_*_linux_amd64.apk
+```
+
+**Windows — Scoop**
+```powershell
+scoop bucket add kyp https://github.com/stickpro/scoop-kyp
+scoop install kyp
+```
+
+**Go**
+```bash
+go install github.com/stickpro/kyp/cmd/kyp@latest
+```
+
+**Manual** — download the archive for your OS/arch from the [releases page](https://github.com/stickpro/kyp/releases), extract, and put `kyp` in your `$PATH`.
 
 ## How it works
 
