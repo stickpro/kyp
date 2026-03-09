@@ -76,6 +76,14 @@ func (v *Vault) IsInitialized(ctx context.Context) bool {
 	return err == nil && len(meta) > 0
 }
 
+func (v *Vault) ListVaults(ctx context.Context) ([]*models.VaultMetum, error) {
+	return v.storage.Vault().GetAll(ctx)
+}
+
+func (v *Vault) OpenByName(ctx context.Context, password, name string) error {
+	return v.Open(ctx, password, name)
+}
+
 func (v *Vault) Close() {
 	clear(v.masterKey)
 	v.masterKey = nil
