@@ -118,9 +118,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case form.BackMsg:
 		if m.detail != nil {
 			m.screen = screenDetail
-		} else {
-			m.screen = screenList
+			return m, m.detail.Init()
 		}
+		m.screen = screenList
 		return m, nil
 
 	case form.EntrySavedMsg:
