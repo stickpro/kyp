@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -30,11 +31,12 @@ type BackMsg struct{}
 type ErrMsg struct{ Err error }
 
 type Model struct {
-	inputs  [7]textinput.Model
-	focused int
-	vault   *vault.Vault
-	editID  *string
-	err     error
+	inputs    [6]textinput.Model
+	notesArea textarea.Model
+	focused   int
+	vault     *vault.Vault
+	editID    *string
+	err       error
 }
 
 func New(v *vault.Vault, entry *vault.EntryDTO) Model {
@@ -52,41 +54,45 @@ func New(v *vault.Vault, entry *vault.EntryDTO) Model {
 	iURL := textinput.New()
 	iURL.Placeholder = "URL"
 
-	iNotes := textinput.New()
-	iNotes.Placeholder = "Notes"
-
 	iTOTPSecret := textinput.New()
 	iTOTPSecret.Placeholder = "TOTP secret (optional)"
 
 	iTOTPIssuer := textinput.New()
 	iTOTPIssuer.Placeholder = "TOTP issuer (optional)"
 
+	ta := textarea.New()
+	ta.Placeholder = "Notes"
+	ta.SetHeight(3)
+	ta.SetWidth(40)
+	ta.ShowLineNumbers = false
+
 	m := Model{
-		inputs:  [7]textinput.Model{iTitle, iUsername, iPassword, iURL, iNotes, iTOTPSecret, iTOTPIssuer},
-		focused: fieldTitle,
-		vault:   v,
+		inputs:    [6]textinput.Model{iTitle, iUsername, iPassword, iURL, iTOTPSecret, iTOTPIssuer},
+		notesArea: ta,
+		focused:   fieldTitle,
+		vault:     v,
 	}
 
 	if entry != nil {
 		m.editID = entry.ID
-		m.inputs[fieldTitle].SetValue(entry.Title)
+		m.inputs[0].SetValue(entry.Title)
 		if entry.Username != nil {
-			m.inputs[fieldUsername].SetValue(*entry.Username)
+			m.inputs[1].SetValue(*entry.Username)
 		}
 		if entry.Password != nil {
-			m.inputs[fieldPassword].SetValue(*entry.Password)
+			m.inputs[2].SetValue(*entry.Password)
 		}
 		if entry.URL != nil {
-			m.inputs[fieldURL].SetValue(*entry.URL)
+			m.inputs[3].SetValue(*entry.URL)
 		}
 		if entry.Notes != nil {
-			m.inputs[fieldNotes].SetValue(*entry.Notes)
+			m.notesArea.SetValue(*entry.Notes)
 		}
 		if entry.TOTPSecret != nil {
-			m.inputs[fieldTOTPSecret].SetValue(*entry.TOTPSecret)
+			m.inputs[4].SetValue(*entry.TOTPSecret)
 		}
 		if entry.TOTPIssuer != nil {
-			m.inputs[fieldTOTPIssuer].SetValue(*entry.TOTPIssuer)
+			m.inputs[5].SetValue(*entry.TOTPIssuer)
 		}
 	}
 
@@ -97,6 +103,30 @@ func (m *Model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+func inputIdx(focused int) int {
+	if focused < fieldNotes {
+		return focused
+	}
+	return focused - 1
+}
+
+func (m *Model) setFocus(idx int) tea.Cmd {
+	if m.focused == fieldNotes {
+		m.notesArea.Blur()
+	} else if m.focused < fieldNotes || (m.focused > fieldNotes && m.focused < btnSave) {
+		m.inputs[inputIdx(m.focused)].Blur()
+	}
+
+	m.focused = idx
+
+	if m.focused == fieldNotes {
+		return m.notesArea.Focus()
+	} else if m.focused < fieldNotes || (m.focused > fieldNotes && m.focused < btnSave) {
+		m.inputs[inputIdx(m.focused)].Focus()
+	}
+	return nil
+}
+
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -105,42 +135,58 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case tea.KeyCtrlS:
-			cmd := m.submit()
-			return m, cmd
+			return m, m.submit()
 
 		case tea.KeyCtrlG:
 			if m.focused == fieldPassword {
 				pwd, err := crypto.GeneratePassword(20, true, true, true)
 				if err == nil {
-					m.inputs[fieldPassword].SetValue(pwd)
+					m.inputs[inputIdx(fieldPassword)].SetValue(pwd)
 				}
 			}
 
 		case tea.KeyCtrlP:
-			if m.inputs[fieldPassword].EchoMode == textinput.EchoPassword {
-				m.inputs[fieldPassword].EchoMode = textinput.EchoNormal
-			} else {
-				m.inputs[fieldPassword].EchoMode = textinput.EchoPassword
+			if m.focused == fieldPassword {
+				idx := inputIdx(fieldPassword)
+				if m.inputs[idx].EchoMode == textinput.EchoPassword {
+					m.inputs[idx].EchoMode = textinput.EchoNormal
+				} else {
+					m.inputs[idx].EchoMode = textinput.EchoPassword
+				}
 			}
 
 		case tea.KeyEsc:
+			if m.focused == fieldNotes {
+				// esc in textarea exits notes field, go back to list
+			}
 			return m, func() tea.Msg { return BackMsg{} }
 
-		case tea.KeyTab, tea.KeyDown:
-			m.setFocus((m.focused + 1) % fieldsCount)
+		case tea.KeyTab:
+			return m, m.setFocus((m.focused + 1) % fieldsCount)
 
-		case tea.KeyShiftTab, tea.KeyUp:
-			m.setFocus((m.focused - 1 + fieldsCount) % fieldsCount)
+		case tea.KeyShiftTab:
+			return m, m.setFocus((m.focused - 1 + fieldsCount) % fieldsCount)
+
+		case tea.KeyDown:
+			if m.focused != fieldNotes {
+				return m, m.setFocus((m.focused + 1) % fieldsCount)
+			}
+
+		case tea.KeyUp:
+			if m.focused != fieldNotes {
+				return m, m.setFocus((m.focused - 1 + fieldsCount) % fieldsCount)
+			}
 
 		case tea.KeyEnter:
 			switch m.focused {
 			case btnCancel:
 				return m, func() tea.Msg { return BackMsg{} }
 			case btnSave:
-				cmd := m.submit()
-				return m, cmd
+				return m, m.submit()
+			case fieldNotes:
+				// let textarea handle Enter (insert newline)
 			default:
-				m.setFocus(m.focused + 1)
+				return m, m.setFocus(m.focused + 1)
 			}
 
 		default:
@@ -155,10 +201,19 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	if m.focused < len(m.inputs) {
+	if m.focused == fieldNotes {
 		var cmd tea.Cmd
-		m.inputs[m.focused], cmd = m.inputs[m.focused].Update(msg)
+		m.notesArea, cmd = m.notesArea.Update(msg)
 		return m, cmd
+	}
+
+	if m.focused < fieldsCount-2 { // not buttons
+		idx := inputIdx(m.focused)
+		if idx >= 0 && idx < len(m.inputs) {
+			var cmd tea.Cmd
+			m.inputs[idx], cmd = m.inputs[idx].Update(msg)
+			return m, cmd
+		}
 	}
 
 	return m, nil
@@ -192,14 +247,14 @@ func (m *Model) View() string {
 
 	sep := styles.HintStyle.Render("─── TOTP (optional) ───")
 
-	fields := m.inputs[fieldTitle].View() + "\n" +
-		m.inputs[fieldUsername].View() + "\n" +
-		m.inputs[fieldPassword].View() + "\n" +
-		m.inputs[fieldURL].View() + "\n" +
-		m.inputs[fieldNotes].View() + "\n\n" +
+	fields := m.inputs[0].View() + "\n" +
+		m.inputs[1].View() + "\n" +
+		m.inputs[2].View() + "\n" +
+		m.inputs[3].View() + "\n" +
+		m.notesArea.View() + "\n\n" +
 		" " + sep + "\n" +
-		m.inputs[fieldTOTPSecret].View() + "\n" +
-		m.inputs[fieldTOTPIssuer].View()
+		m.inputs[4].View() + "\n" +
+		m.inputs[5].View()
 
 	return fmt.Sprintf("%s\n\n %s\n\n %s\n\n %s\n\n %s",
 		title,
@@ -210,18 +265,8 @@ func (m *Model) View() string {
 	)
 }
 
-func (m *Model) setFocus(idx int) {
-	if m.focused < len(m.inputs) {
-		m.inputs[m.focused].Blur()
-	}
-	m.focused = idx
-	if m.focused < len(m.inputs) {
-		m.inputs[m.focused].Focus()
-	}
-}
-
 func (m *Model) submit() tea.Cmd {
-	title := m.inputs[fieldTitle].Value()
+	title := m.inputs[inputIdx(fieldTitle)].Value()
 	if title == "" {
 		return func() tea.Msg {
 			return ErrMsg{Err: fmt.Errorf("title is required")}
@@ -229,21 +274,20 @@ func (m *Model) submit() tea.Cmd {
 	}
 
 	dto := vault.EntryDTO{
-		Title:    title,
-		Username: strPtr(m.inputs[fieldUsername].Value()),
-		Password: strPtr(m.inputs[fieldPassword].Value()),
-		URL:      strPtr(m.inputs[fieldURL].Value()),
-		Notes:    strPtr(m.inputs[fieldNotes].Value()),
-		// TOTP defaults
+		Title:         title,
+		Username:      strPtr(m.inputs[inputIdx(fieldUsername)].Value()),
+		Password:      strPtr(m.inputs[inputIdx(fieldPassword)].Value()),
+		URL:           strPtr(m.inputs[inputIdx(fieldURL)].Value()),
+		Notes:         strPtr(m.notesArea.Value()),
 		TOTPAlgorithm: "SHA1",
 		TOTPDigits:    6,
 		TOTPPeriod:    30,
 	}
 
-	if s := m.inputs[fieldTOTPSecret].Value(); s != "" {
+	if s := m.inputs[inputIdx(fieldTOTPSecret)].Value(); s != "" {
 		dto.TOTPSecret = &s
 	}
-	if s := m.inputs[fieldTOTPIssuer].Value(); s != "" {
+	if s := m.inputs[inputIdx(fieldTOTPIssuer)].Value(); s != "" {
 		dto.TOTPIssuer = &s
 	}
 

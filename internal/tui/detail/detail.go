@@ -161,7 +161,7 @@ func (m *Model) View() string {
 	b.WriteString(copyableField("Username", strVal(m.entry.Username, "-"), "u", m.copied == "Username"))
 	b.WriteString(copyableField("Password", passwordVal(m.entry.Password, m.showPassword), "c", m.copied == "Password"))
 	b.WriteString(field("URL", strVal(m.entry.URL, "-")))
-	b.WriteString(field("Notes", strVal(m.entry.Notes, "-")))
+	b.WriteString(multilineField("Notes", strVal(m.entry.Notes, "-")))
 
 	if m.entry.TOTPSecret != nil {
 		b.WriteString("\n")
@@ -257,6 +257,16 @@ var (
 
 func field(label, value string) string {
 	return labelStyle.Render(label+":") + " " + valueStyle.Render(value) + "\n"
+}
+
+func multilineField(label, value string) string {
+	lines := strings.Split(value, "\n")
+	indent := strings.Repeat(" ", 17) // labelStyle.Width(16) + 1 space
+	result := labelStyle.Render(label+":") + " " + valueStyle.Render(lines[0])
+	for _, line := range lines[1:] {
+		result += "\n" + indent + valueStyle.Render(line)
+	}
+	return result + "\n"
 }
 
 func copyableField(label, value, key string, wasCopied bool) string {
