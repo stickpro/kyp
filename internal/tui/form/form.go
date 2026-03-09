@@ -135,7 +135,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case tea.KeyCtrlS:
-			return m, m.submit()
+			cmd := m.submit()
+			return m, cmd
 
 		case tea.KeyCtrlG:
 			if m.focused == fieldPassword {
@@ -156,25 +157,26 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case tea.KeyEsc:
-			if m.focused == fieldNotes {
-				// esc in textarea exits notes field, go back to list
-			}
 			return m, func() tea.Msg { return BackMsg{} }
 
 		case tea.KeyTab:
-			return m, m.setFocus((m.focused + 1) % fieldsCount)
+			cmd := m.setFocus((m.focused + 1) % fieldsCount)
+			return m, cmd
 
 		case tea.KeyShiftTab:
-			return m, m.setFocus((m.focused - 1 + fieldsCount) % fieldsCount)
+			cmd := m.setFocus((m.focused - 1 + fieldsCount) % fieldsCount)
+			return m, cmd
 
 		case tea.KeyDown:
 			if m.focused != fieldNotes {
-				return m, m.setFocus((m.focused + 1) % fieldsCount)
+				cmd := m.setFocus((m.focused + 1) % fieldsCount)
+				return m, cmd
 			}
 
 		case tea.KeyUp:
 			if m.focused != fieldNotes {
-				return m, m.setFocus((m.focused - 1 + fieldsCount) % fieldsCount)
+				cmd := m.setFocus((m.focused - 1 + fieldsCount) % fieldsCount)
+				return m, cmd
 			}
 
 		case tea.KeyEnter:
@@ -182,11 +184,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case btnCancel:
 				return m, func() tea.Msg { return BackMsg{} }
 			case btnSave:
-				return m, m.submit()
+				cmd := m.submit()
+				return m, cmd
 			case fieldNotes:
-				// let textarea handle Enter (insert newline)
+				// textarea handles Enter itself (insert newline)
 			default:
-				return m, m.setFocus(m.focused + 1)
+				cmd := m.setFocus(m.focused + 1)
+				return m, cmd
 			}
 
 		default:
