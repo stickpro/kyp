@@ -35,8 +35,10 @@ type Model struct {
 }
 
 func New(v *vault.Vault) Model {
-	if v.IsInitialized(context.Background()) {
-		u := unlock.New(v)
+	ctx := context.Background()
+	vaults, err := v.ListVaults(ctx)
+	if err == nil && len(vaults) > 0 {
+		u := unlock.New(v, vaults)
 		return Model{
 			screen: screenUnlock,
 			vault:  v,
