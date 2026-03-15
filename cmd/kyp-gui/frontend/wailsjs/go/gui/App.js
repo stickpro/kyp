@@ -42,6 +42,10 @@ export function Lock() {
   return window['go']['gui']['App']['Lock']();
 }
 
+export function ReportActivity() {
+  return window['go']['gui']['App']['ReportActivity']();
+}
+
 export function Unlock(arg1, arg2) {
   return window['go']['gui']['App']['Unlock'](arg1, arg2);
 }

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/stickpro/kyp/internal/config"
 	"github.com/stickpro/kyp/internal/gui"
 	"github.com/stickpro/kyp/internal/storage/sqlite"
+	"github.com/stickpro/kyp/pkg/cfg"
 	"github.com/stickpro/kyp/pkg/storage"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -24,9 +26,17 @@ func main() {
 }
 
 func run() error {
+	var conf config.Config
+	if err := cfg.Load(&conf, cfg.WithOptionalFiles(true)); err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
 	dbPath, err := storage.DefaultDBPath()
 	if err != nil {
 		return fmt.Errorf("resolve db path: %w", err)
+	}
+	if conf.Storage.DBPath != "" {
+		dbPath = conf.Storage.DBPath
 	}
 
 	db, err := sqlite.InitLocalStorage(dbPath)
@@ -39,7 +49,7 @@ func run() error {
 		}
 	}()
 
-	app := gui.NewApp(db)
+	app := gui.NewApp(db, conf.LockTimeout)
 
 	return wails.Run(&options.App{
 		Title:  "kyp",

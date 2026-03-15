@@ -1,5 +1,5 @@
 <script>
-    import {onMount} from 'svelte'
+    import {onMount, onDestroy} from 'svelte'
     import {fade, fly} from 'svelte/transition'
     import {
         CreateEntry,
@@ -11,9 +11,11 @@
         ListEntries,
         ListVaults,
         Lock,
+        ReportActivity,
         Unlock,
         UpdateEntry
     } from '../wailsjs/go/gui/App.js'
+    import {EventsOn} from '../wailsjs/runtime/runtime.js'
 
     let screen = 'loading'
     let vaults = []
@@ -70,7 +72,31 @@
         totpState = null
     }
 
+    // Activity tracking — debounced to avoid flooding the backend
+    let activityDebounce = null
+    function onActivity() {
+        if (screen !== 'app') return
+        if (activityDebounce) return
+        activityDebounce = setTimeout(() => {
+            activityDebounce = null
+            ReportActivity()
+        }, 500)
+    }
+
+    const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart']
+
     onMount(async () => {
+        // Auto-lock: backend emits this event when inactivity timeout fires
+        EventsOn('vault:locked', () => {
+            stopTOTPTimer()
+            screen = 'unlock'
+            password = ''
+            entries = []
+            selected = null
+        })
+
+        ACTIVITY_EVENTS.forEach(e => document.addEventListener(e, onActivity, {passive: true}))
+
         const has = await HasVault()
         if (has) {
             vaults = await ListVaults()
@@ -79,6 +105,11 @@
         } else {
             screen = 'create'
         }
+    })
+
+    onDestroy(() => {
+        ACTIVITY_EVENTS.forEach(e => document.removeEventListener(e, onActivity))
+        if (activityDebounce) clearTimeout(activityDebounce)
     })
 
     async function handleCreate() {

@@ -10,7 +10,7 @@ type (
 	Config struct {
 		Log         logger.Config
 		Storage     StorageConfig
-		LockTimeout time.Duration `yaml:"lock_timeout" env:"KYP_LOCK_TIMEOUT" default:"5m"`
+		LockTimeout time.Duration `yaml:"lock_timeout" env:"KYP_LOCK_TIMEOUT" default:"30s"`
 	}
 
 	StorageConfig struct {
