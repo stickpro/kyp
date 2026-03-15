@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/stickpro/kyp/internal/tui/styles"
 	"github.com/stickpro/kyp/internal/vault"
 )
 
@@ -64,8 +65,6 @@ type Model struct {
 	err   error
 }
 
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
-
 func New(v *vault.Vault, width, height int) Model {
 	l := list.New(nil, list.NewDefaultDelegate(), width, height)
 	l.Title = "Keep Your Passwords"
@@ -74,6 +73,13 @@ func New(v *vault.Vault, width, height int) Model {
 		Foreground(lipgloss.Color("255")).
 		Background(lipgloss.Color("99")).
 		Padding(0, 1)
+
+	filterText := lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "232", Dark: "255"})
+	filterPrompt := lipgloss.NewStyle().Foreground(lipgloss.Color("99"))
+	l.FilterInput.PromptStyle = filterPrompt
+	l.FilterInput.TextStyle = filterText
+	l.Styles.FilterPrompt = filterPrompt
+	l.Styles.FilterCursor = filterPrompt
 
 	l.AdditionalShortHelpKeys = func() []key.Binding {
 		return []key.Binding{
@@ -117,7 +123,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
+		h, v := styles.DocStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 
 	case EntriesLoadedMsg:
@@ -138,7 +144,7 @@ func (m *Model) View() string {
 	if m.err != nil {
 		return lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Render(m.err.Error())
 	}
-	return docStyle.Render(m.list.View())
+	return styles.DocStyle.Render(m.list.View())
 }
 
 func (m *Model) SelectedEntry() *vault.EntryDTO {

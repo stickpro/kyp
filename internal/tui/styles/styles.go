@@ -3,6 +3,8 @@ package styles
 import "github.com/charmbracelet/lipgloss"
 
 var (
+	DocStyle = lipgloss.NewStyle().Margin(1, 2)
+
 	ActiveStyle = lipgloss.NewStyle().
 			Background(lipgloss.Color("99")).
 			Foreground(lipgloss.Color("255")).
