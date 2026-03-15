@@ -1,0 +1,91 @@
+name: Release GUI
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux/amd64
+            output: kyp-gui_linux_amd64
+
+          - os: macos-latest
+            platform: darwin/arm64
+            output: kyp-gui_darwin_arm64
+
+          - os: macos-13
+            platform: darwin/amd64
+            output: kyp-gui_darwin_amd64
+
+          - os: windows-latest
+            platform: windows/amd64
+            output: kyp-gui_windows_amd64.exe
+
+    runs-on: ${{ matrix.os }}
+    name: Build ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
+
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.0-dev \
+            libayatana-appindicator3-dev
+
+      # Linux / Windows: rename output via -o flag
+      - name: Build (Linux & Windows)
+        if: runner.os != 'macOS'
+        working-directory: cmd/kyp-gui
+        run: wails build -platform ${{ matrix.platform }} -o ${{ matrix.output }}
+
+      # macOS: build with default name, then zip the .app bundle
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        working-directory: cmd/kyp-gui
+        run: wails build -platform ${{ matrix.platform }}
+
+      - name: Package macOS .app as zip
+        if: runner.os == 'macOS'
+        working-directory: cmd/kyp-gui/build/bin
+        run: |
+          # wails.json outputfilename = "gui" → produces gui.app
+          zip -r ${{ matrix.output }}.zip gui.app
+
+      - name: Set release asset path
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            echo "ASSET=cmd/kyp-gui/build/bin/${{ matrix.output }}.zip" >> "$GITHUB_ENV"
+          else
+            echo "ASSET=cmd/kyp-gui/build/bin/${{ matrix.output }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ASSET }}
