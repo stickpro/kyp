@@ -16,22 +16,20 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux/amd64
-            output: kyp-gui_linux_amd64
+            os_name: linux
+            arch: amd64
             extra_args: "-tags webkit2_41"
 
           - os: macos-latest
             platform: darwin/arm64
-            output: kyp-gui_darwin_arm64
-            extra_args: ""
-
-          - os: macos-13
-            platform: darwin/amd64
-            output: kyp-gui_darwin_amd64
+            os_name: darwin
+            arch: arm64
             extra_args: ""
 
           - os: windows-latest
             platform: windows/amd64
-            output: kyp-gui_windows_amd64.exe
+            os_name: windows
+            arch: amd64
             extra_args: ""
 
     runs-on: ${{ matrix.os }}
@@ -61,34 +59,57 @@ jobs:
             libwebkit2gtk-4.1-dev \
             libayatana-appindicator3-dev
 
-      # Linux / Windows: use -o to name the output binary
-      - name: Build (Linux & Windows)
-        if: runner.os != 'macOS'
+      # Derive version (strip leading "v") and archive name
+      - name: Set artifact name
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "ARCHIVE=kyp-gui_${VERSION}_${{ matrix.os_name }}_${{ matrix.arch }}" >> "$GITHUB_ENV"
+
+      # Linux: binary → tar.gz (matches goreleaser TUI format)
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
         shell: bash
         working-directory: cmd/kyp-gui
-        run: wails build -platform ${{ matrix.platform }} -o ${{ matrix.output }} ${{ matrix.extra_args }}
+        run: wails build -platform ${{ matrix.platform }} -o kyp-gui ${{ matrix.extra_args }}
 
-      # macOS: build with default name, zip the resulting .app bundle
+      - name: Package Linux archive
+        if: runner.os == 'Linux'
+        run: |
+          tar -czf "${{ env.ARCHIVE }}.tar.gz" \
+            -C cmd/kyp-gui/build/bin kyp-gui \
+            LICENSE README.md
+          echo "ASSET=${{ env.ARCHIVE }}.tar.gz" >> "$GITHUB_ENV"
+
+      # macOS: .app bundle → zip
       - name: Build (macOS)
         if: runner.os == 'macOS'
         working-directory: cmd/kyp-gui
         run: wails build -platform ${{ matrix.platform }}
 
-      - name: Package macOS .app as zip
+      - name: Package macOS archive
         if: runner.os == 'macOS'
-        working-directory: cmd/kyp-gui/build/bin
         run: |
-          APP=$(find . -maxdepth 1 -name "*.app" | head -1)
-          zip -r ${{ matrix.output }}.zip "$APP"
+          APP=$(find cmd/kyp-gui/build/bin -maxdepth 1 -name "*.app" | head -1)
+          zip -r "${{ env.ARCHIVE }}.zip" "$APP"
+          echo "ASSET=${{ env.ARCHIVE }}.zip" >> "$GITHUB_ENV"
 
-      - name: Set release asset path
+      # Windows: .exe → zip (matches goreleaser TUI format)
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        working-directory: cmd/kyp-gui
+        run: wails build -platform ${{ matrix.platform }} -o kyp-gui.exe ${{ matrix.extra_args }}
+
+      - name: Package Windows archive
+        if: runner.os == 'Windows'
         shell: bash
         run: |
-          if [ "${{ runner.os }}" = "macOS" ]; then
-            echo "ASSET=cmd/kyp-gui/build/bin/${{ matrix.output }}.zip" >> "$GITHUB_ENV"
-          else
-            echo "ASSET=cmd/kyp-gui/build/bin/${{ matrix.output }}" >> "$GITHUB_ENV"
-          fi
+          zip "${{ env.ARCHIVE }}.zip" \
+            cmd/kyp-gui/build/bin/kyp-gui.exe \
+            LICENSE README.md
+          echo "ASSET=${{ env.ARCHIVE }}.zip" >> "$GITHUB_ENV"
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
