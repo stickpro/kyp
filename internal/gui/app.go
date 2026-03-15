@@ -2,12 +2,14 @@ package gui
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/stickpro/kyp/internal/crypto"
 	"github.com/stickpro/kyp/internal/storage/sqlite"
 	"github.com/stickpro/kyp/internal/totp"
 	"github.com/stickpro/kyp/internal/vault"
+	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // EntryDTO is the entry representation exposed to the Svelte frontend.
@@ -33,15 +35,19 @@ type TOTPState struct {
 
 // App holds application state and exposes methods to the Wails frontend.
 type App struct {
-	ctx     context.Context
-	vault   *vault.Vault
-	storage sqlite.ILocalStorage
+	ctx         context.Context
+	vault       *vault.Vault
+	storage     sqlite.ILocalStorage
+	lockTimeout time.Duration
+	lockTimer   *time.Timer
+	mu          sync.Mutex
 }
 
-func NewApp(storage sqlite.ILocalStorage) *App {
+func NewApp(storage sqlite.ILocalStorage, lockTimeout time.Duration) *App {
 	return &App{
-		vault:   vault.Init(storage),
-		storage: storage,
+		vault:       vault.Init(storage),
+		storage:     storage,
+		lockTimeout: lockTimeout,
 	}
 }
 
@@ -50,7 +56,37 @@ func (a *App) Startup(ctx context.Context) {
 }
 
 func (a *App) Shutdown(_ context.Context) {
+	a.stopLockTimer()
 	a.vault.Close()
+}
+
+func (a *App) startLockTimer() {
+	a.stopLockTimer()
+	if a.lockTimeout <= 0 {
+		return
+	}
+	a.lockTimer = time.AfterFunc(a.lockTimeout, func() {
+		a.vault.Close()
+		wailsruntime.EventsEmit(a.ctx, "vault:locked")
+	})
+}
+
+func (a *App) stopLockTimer() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.lockTimer != nil {
+		a.lockTimer.Stop()
+		a.lockTimer = nil
+	}
+}
+
+// ReportActivity resets the inactivity timer. Called by the frontend on user interaction.
+func (a *App) ReportActivity() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.lockTimer != nil {
+		a.lockTimer.Reset(a.lockTimeout)
+	}
 }
 
 func (a *App) HasVault() bool {
@@ -75,10 +111,15 @@ func (a *App) CreateVault(name, password string) error {
 }
 
 func (a *App) Unlock(name, password string) error {
-	return a.vault.OpenByName(a.ctx, password, name)
+	if err := a.vault.OpenByName(a.ctx, password, name); err != nil {
+		return err
+	}
+	a.startLockTimer()
+	return nil
 }
 
 func (a *App) Lock() {
+	a.stopLockTimer()
 	a.vault.Close()
 }
 
