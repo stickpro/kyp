@@ -260,13 +260,13 @@ func (m *Model) View() string {
 		m.inputs[4].View() + "\n" +
 		m.inputs[5].View()
 
-	return fmt.Sprintf("%s\n\n %s\n\n %s\n\n %s\n\n %s",
+	return styles.DocStyle.Render(fmt.Sprintf("%s\n\n %s\n\n %s\n\n %s\n\n %s",
 		title,
 		fields,
 		buttons,
 		hint,
 		errStr,
-	)
+	))
 }
 
 func (m *Model) submit() tea.Cmd {

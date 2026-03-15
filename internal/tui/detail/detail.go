@@ -193,7 +193,7 @@ func (m *Model) View() string {
 		}
 	}
 
-	return lipgloss.NewStyle().Margin(1, 2).Render(b.String())
+	return tuistyles.DocStyle.Render(b.String())
 }
 
 func (m *Model) totpView() string {

@@ -60,7 +60,7 @@ func commands(currentAppVersion, appName, _ string) []*cli.Command {
 				}()
 
 				v := vault.Init(storage)
-				m := tui.New(v)
+				m := tui.New(v, conf.LockTimeout)
 
 				if _, err := tea.NewProgram(&m, tea.WithAltScreen()).Run(); err != nil {
 					return err

@@ -1,11 +1,16 @@
 package config
 
-import "github.com/stickpro/kyp/pkg/logger"
+import (
+	"time"
+
+	"github.com/stickpro/kyp/pkg/logger"
+)
 
 type (
 	Config struct {
-		Log     logger.Config
-		Storage StorageConfig
+		Log         logger.Config
+		Storage     StorageConfig
+		LockTimeout time.Duration `yaml:"lock_timeout" env:"KYP_LOCK_TIMEOUT" default:"5m"`
 	}
 
 	StorageConfig struct {
