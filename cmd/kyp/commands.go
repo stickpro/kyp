@@ -49,17 +49,17 @@ func commands(currentAppVersion, appName, _ string) []*cli.Command {
 					return fmt.Errorf("resolve db path: %w", err)
 				}
 
-				storage, err := sqlite.InitLocalStorage(dbPath)
+				st, err := sqlite.InitLocalStorage(dbPath)
 				if err != nil {
 					return err
 				}
 				defer func() {
-					if err := storage.Close(); err != nil {
-						fmt.Fprintf(os.Stderr, "failed to close storage: %v\n", err)
+					if err := st.Close(); err != nil {
+						fmt.Fprintf(os.Stderr, "failed to close st: %v\n", err)
 					}
 				}()
 
-				v := vault.Init(storage)
+				v := vault.Init(st)
 				m := tui.New(v, conf.LockTimeout)
 
 				if _, err := tea.NewProgram(&m, tea.WithAltScreen()).Run(); err != nil {

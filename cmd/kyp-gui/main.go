@@ -17,16 +17,21 @@ import (
 var assets embed.FS
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	dbPath, err := storage.DefaultDBPath()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to resolve db path: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("resolve db path: %w", err)
 	}
 
 	db, err := sqlite.InitLocalStorage(dbPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to init storage: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("init storage: %w", err)
 	}
 	defer func() {
 		if err := db.Close(); err != nil {
@@ -36,7 +41,7 @@ func main() {
 
 	app := gui.NewApp(db)
 
-	if err := wails.Run(&options.App{
+	return wails.Run(&options.App{
 		Title:  "kyp",
 		Width:  1024,
 		Height: 768,
@@ -49,8 +54,5 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
-	}); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
-	}
+	})
 }
