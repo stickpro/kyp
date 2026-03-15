@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=KYP
+Comment=Keep Your Passwords — local-first password manager
+Exec=kyp-gui
+Icon=kyp-gui
+Type=Application
+Categories=Utility;Security;
+Keywords=password;vault;totp;
+StartupNotify=true

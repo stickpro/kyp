@@ -63,9 +63,38 @@ jobs:
           cp /tmp/SRCINFO /aur-kyp/.SRCINFO
           chown -R root:root /aur-kyp
 
-      - name: Push to AUR
+      - name: Push kyp to AUR
         run: |
           cd /aur-kyp
+          git config user.name "goreleaser-bot"
+          git config user.email "goreleaser@stickpro"
+          git add PKGBUILD .SRCINFO
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "update to ${{ steps.version.outputs.version }}"
+          git push
+
+      - name: Clone kyp-gui AUR repo
+        run: git clone ssh://aur@aur.archlinux.org/kyp-gui.git /aur-kyp-gui
+
+      - name: Update kyp-gui PKGBUILD
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          SHA=${{ steps.checksum.outputs.sha256 }}
+          cp packaging/aur/kyp-gui/PKGBUILD /aur-kyp-gui/PKGBUILD
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" /aur-kyp-gui/PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" /aur-kyp-gui/PKGBUILD
+          sed -i "s/^sha256sums=.*/sha256sums=('${SHA}')/" /aur-kyp-gui/PKGBUILD
+
+      - name: Generate kyp-gui .SRCINFO
+        run: |
+          chown -R builder:builder /aur-kyp-gui
+          cd /aur-kyp-gui && sudo -u builder makepkg --printsrcinfo > /tmp/SRCINFO_gui
+          cp /tmp/SRCINFO_gui /aur-kyp-gui/.SRCINFO
+          chown -R root:root /aur-kyp-gui
+
+      - name: Push kyp-gui to AUR
+        run: |
+          cd /aur-kyp-gui
           git config user.name "goreleaser-bot"
           git config user.email "goreleaser@stickpro"
           git add PKGBUILD .SRCINFO

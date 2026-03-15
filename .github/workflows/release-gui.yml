@@ -79,7 +79,8 @@ jobs:
         run: |
           tar -czf "${{ env.ARCHIVE }}.tar.gz" \
             -C cmd/kyp-gui/build/bin kyp-gui \
-            -C "$GITHUB_WORKSPACE" LICENSE README.md
+            -C "$GITHUB_WORKSPACE" LICENSE README.md \
+            -C "$GITHUB_WORKSPACE/cmd/kyp-gui/build/linux" kyp-gui.desktop
           echo "ASSET=${{ env.ARCHIVE }}.tar.gz" >> "$GITHUB_ENV"
 
       # macOS: .app bundle → zip
@@ -115,3 +116,52 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ env.ASSET }}
+
+      - name: Publish kyp-gui-bin to AUR
+        if: runner.os == 'Linux'
+        env:
+          AUR_SSH_KEY: ${{ secrets.AUR_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$AUR_SSH_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          cat >> ~/.ssh/config <<'EOF'
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur
+            User aur
+            StrictHostKeyChecking no
+          EOF
+
+          SHA256=$(sha256sum "${{ env.ASSET }}" | awk '{print $1}')
+          PKGVER="${{ env.VERSION }}"
+
+          git clone ssh://aur@aur.archlinux.org/kyp-gui-bin.git /tmp/kyp-gui-bin
+          cat > /tmp/kyp-gui-bin/PKGBUILD <<EOF
+          pkgname=kyp-gui-bin
+          pkgver=${PKGVER}
+          pkgrel=1
+          pkgdesc="Keep Your Passwords — local-first GUI password manager"
+          arch=('x86_64')
+          url="https://github.com/stickpro/kyp"
+          license=('MIT')
+          depends=('webkit2gtk-4.1' 'gtk3')
+          provides=('kyp-gui')
+          conflicts=('kyp-gui' 'kyp-gui-git')
+          source=("kyp-gui_\${pkgver}_linux_amd64.tar.gz::https://github.com/stickpro/kyp/releases/download/v\${pkgver}/kyp-gui_\${pkgver}_linux_amd64.tar.gz")
+          sha256sums=('${SHA256}')
+
+          package() {
+            install -Dm755 kyp-gui "\${pkgdir}/usr/bin/kyp-gui"
+            install -Dm644 kyp-gui.desktop "\${pkgdir}/usr/share/applications/kyp-gui.desktop"
+            install -Dm644 LICENSE "\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE"
+            install -Dm644 README.md "\${pkgdir}/usr/share/doc/\${pkgname}/README.md"
+          }
+          EOF
+
+          cd /tmp/kyp-gui-bin
+          git config user.name "goreleaser-bot"
+          git config user.email "goreleaser@stickpro"
+          makepkg --printsrcinfo > .SRCINFO
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update to ${PKGVER}"
+          git push
