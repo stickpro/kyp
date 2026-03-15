@@ -17,18 +17,22 @@ jobs:
           - os: ubuntu-latest
             platform: linux/amd64
             output: kyp-gui_linux_amd64
+            extra_args: "-tags webkit2_41"
 
           - os: macos-latest
             platform: darwin/arm64
             output: kyp-gui_darwin_arm64
+            extra_args: ""
 
           - os: macos-13
             platform: darwin/amd64
             output: kyp-gui_darwin_amd64
+            extra_args: ""
 
           - os: windows-latest
             platform: windows/amd64
             output: kyp-gui_windows_amd64.exe
+            extra_args: ""
 
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.platform }}
@@ -57,16 +61,14 @@ jobs:
             libwebkit2gtk-4.1-dev \
             libayatana-appindicator3-dev
 
-      # Linux / Windows: rename output via -o flag
+      # Linux / Windows: use -o to name the output binary
       - name: Build (Linux & Windows)
         if: runner.os != 'macOS'
+        shell: bash
         working-directory: cmd/kyp-gui
-        run: |
-          TAGS=""
-          if [ "${{ runner.os }}" = "Linux" ]; then TAGS="-tags webkit2_41"; fi
-          wails build -platform ${{ matrix.platform }} -o ${{ matrix.output }} $TAGS
+        run: wails build -platform ${{ matrix.platform }} -o ${{ matrix.output }} ${{ matrix.extra_args }}
 
-      # macOS: build with default name, then zip the .app bundle
+      # macOS: build with default name, zip the resulting .app bundle
       - name: Build (macOS)
         if: runner.os == 'macOS'
         working-directory: cmd/kyp-gui
@@ -76,8 +78,8 @@ jobs:
         if: runner.os == 'macOS'
         working-directory: cmd/kyp-gui/build/bin
         run: |
-          # wails.json outputfilename = "gui" → produces gui.app
-          zip -r ${{ matrix.output }}.zip gui.app
+          APP=$(find . -maxdepth 1 -name "*.app" | head -1)
+          zip -r ${{ matrix.output }}.zip "$APP"
 
       - name: Set release asset path
         shell: bash
