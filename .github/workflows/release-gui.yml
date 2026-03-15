@@ -79,7 +79,7 @@ jobs:
         run: |
           tar -czf "${{ env.ARCHIVE }}.tar.gz" \
             -C cmd/kyp-gui/build/bin kyp-gui \
-            LICENSE README.md
+            -C "$GITHUB_WORKSPACE" LICENSE README.md
           echo "ASSET=${{ env.ARCHIVE }}.tar.gz" >> "$GITHUB_ENV"
 
       # macOS: .app bundle → zip
@@ -106,7 +106,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          zip "${{ env.ARCHIVE }}.zip" \
+          7z a "${{ env.ARCHIVE }}.zip" \
             cmd/kyp-gui/build/bin/kyp-gui.exe \
             LICENSE README.md
           echo "ASSET=${{ env.ARCHIVE }}.zip" >> "$GITHUB_ENV"
