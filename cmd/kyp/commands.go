@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stickpro/kyp/internal/config"
@@ -14,6 +13,7 @@ import (
 	"github.com/stickpro/kyp/internal/vault"
 	"github.com/stickpro/kyp/pkg/cfg"
 	"github.com/stickpro/kyp/pkg/logger"
+	"github.com/stickpro/kyp/pkg/storage"
 	"github.com/urfave/cli/v3"
 )
 
@@ -49,17 +49,17 @@ func commands(currentAppVersion, appName, _ string) []*cli.Command {
 					return fmt.Errorf("resolve db path: %w", err)
 				}
 
-				storage, err := sqlite.InitLocalStorage(dbPath)
+				st, err := sqlite.InitLocalStorage(dbPath)
 				if err != nil {
 					return err
 				}
 				defer func() {
-					if err := storage.Close(); err != nil {
-						fmt.Fprintf(os.Stderr, "failed to close storage: %v\n", err)
+					if err := st.Close(); err != nil {
+						fmt.Fprintf(os.Stderr, "failed to close st: %v\n", err)
 					}
 				}()
 
-				v := vault.Init(storage)
+				v := vault.Init(st)
 				m := tui.New(v, conf.LockTimeout)
 
 				if _, err := tea.NewProgram(&m, tea.WithAltScreen()).Run(); err != nil {
@@ -74,48 +74,19 @@ func commands(currentAppVersion, appName, _ string) []*cli.Command {
 // resolveDBPath returns the path to the database by priority:
 // 1. flag --db / env KYP_DB_PATH
 // 2. config.yaml storage.db_path
-// 3. ~/.local/share/kyp/kyp.db (XDG / OS default)
+// 3. OS default (~/.local/share/kyp/kyp.db)
 func resolveDBPath(flagVal, confVal string) (string, error) {
 	path := flagVal
 	if path == "" {
 		path = confVal
 	}
-	if path == "" {
-		dataDir, err := userDataDir()
-		if err != nil {
-			return "", fmt.Errorf("get user data dir: %w", err)
+	if path != "" {
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			return "", fmt.Errorf("create db dir: %w", err)
 		}
-		path = filepath.Join(dataDir, "kyp", "kyp.db")
+		return path, nil
 	}
-
-	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
-		return "", fmt.Errorf("create db dir: %w", err)
-	}
-
-	return path, nil
-}
-
-// userDataDir returns a directory for user data:
-// Linux:   $XDG_DATA_HOME or ~/.local/share
-// macOS:   ~/Library/Application Support
-// Windows: %APPDATA%
-func userDataDir() (string, error) {
-	if xdg := os.Getenv("XDG_DATA_HOME"); xdg != "" {
-		return xdg, nil
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	switch runtime.GOOS {
-	case "darwin":
-		return filepath.Join(home, "Library", "Application Support"), nil
-	case "windows":
-		if appdata := os.Getenv("APPDATA"); appdata != "" {
-			return appdata, nil
-		}
-	}
-	return filepath.Join(home, ".local", "share"), nil
+	return storage.DefaultDBPath()
 }
 
 func cfgPathsFlag() *cli.StringSliceFlag {

@@ -58,6 +58,9 @@ run: build
 
 run-server: build-server
 	$(OUT_BIN_SERVER) $(filter-out $@,$(MAKECMDGOALS))
+
+run-gui:
+	cd ./cmd/kyp-gui && wails dev
 #liner
 lint:
 	golangci-lint run --show-stats

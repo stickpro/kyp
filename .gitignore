@@ -13,3 +13,9 @@ configs/config.yaml
 .netrc
 .tmp
 /tmp
+# kyp-gui (Wails)
+/cmd/kyp-gui/frontend/dist/*
+!/cmd/kyp-gui/frontend/dist/.gitkeep
+/cmd/kyp-gui/frontend/package.json.md5
+/cmd/kyp-gui/build/bin/
+node_modules

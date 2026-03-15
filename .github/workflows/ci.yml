@@ -18,14 +18,27 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Build frontend
+        working-directory: cmd/kyp-gui/frontend
+        run: npm install && npm run build
+
       - name: Download dependencies
         run: go mod download
 
       - name: Build
-        run: go build ./...
+        run: go build -tags webkit2_41 ./...
 
       - name: Test
-        run: go test ./... -race -count=1
+        run: go test -tags webkit2_41 ./... -race -count=1
 
   lint:
     name: Lint
@@ -38,6 +51,20 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Build frontend
+        working-directory: cmd/kyp-gui/frontend
+        run: npm install && npm run build
+
       - uses: golangci/golangci-lint-action@v7
         with:
           version: v2.10.1
+          args: --build-tags webkit2_41

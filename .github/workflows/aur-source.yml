@@ -12,8 +12,6 @@ jobs:
       image: archlinux:latest
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Install dependencies
         run: pacman -Sy --noconfirm git base-devel go openssh curl
 
@@ -32,43 +30,52 @@ jobs:
           EOF
           chmod 600 /root/.ssh/config
 
-      - name: Get version
-        id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
-
-      - name: Calculate checksum
-        id: checksum
+      - name: Get version and checksum
+        id: meta
         run: |
-          VERSION=${{ steps.version.outputs.version }}
-          SHA=$(curl -sL "https://github.com/stickpro/kyp/archive/v${VERSION}.tar.gz" | sha256sum | cut -d' ' -f1)
+          TAG="${GITHUB_REF_NAME#v}"
+          # pkgver forbids hyphens — replace with underscores (e.g. 0.2.1-RC2 → 0.2.1_RC2)
+          VERSION="${TAG//-/_}"
+          SHA=$(curl -sL "https://github.com/stickpro/kyp/archive/v${TAG}.tar.gz" | sha256sum | cut -d' ' -f1)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "sha256=$SHA" >> $GITHUB_OUTPUT
 
-      - name: Clone AUR repo
-        run: git clone ssh://aur@aur.archlinux.org/kyp.git /aur-kyp
-
-      - name: Update PKGBUILD
+      - name: Update kyp AUR
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          SHA: ${{ steps.meta.outputs.sha256 }}
         run: |
-          VERSION=${{ steps.version.outputs.version }}
-          SHA=${{ steps.checksum.outputs.sha256 }}
-          cp packaging/aur/kyp/PKGBUILD /aur-kyp/PKGBUILD
-          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" /aur-kyp/PKGBUILD
-          sed -i "s/^pkgrel=.*/pkgrel=1/" /aur-kyp/PKGBUILD
-          sed -i "s/^sha256sums=.*/sha256sums=('${SHA}')/" /aur-kyp/PKGBUILD
-
-      - name: Generate .SRCINFO
-        run: |
+          git clone ssh://aur@aur.archlinux.org/kyp.git /aur/kyp
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" /aur/kyp/PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" /aur/kyp/PKGBUILD
+          sed -i "s/^sha256sums=.*/sha256sums=('${SHA}')/" /aur/kyp/PKGBUILD
           useradd -m builder
-          chown -R builder:builder /aur-kyp
-          cd /aur-kyp && sudo -u builder makepkg --printsrcinfo > /tmp/SRCINFO
-          cp /tmp/SRCINFO /aur-kyp/.SRCINFO
-          chown -R root:root /aur-kyp
+          chown -R builder:builder /aur/kyp
+          cd /aur/kyp && sudo -u builder makepkg --printsrcinfo > /tmp/SRCINFO && cp /tmp/SRCINFO .SRCINFO
+          chown -R root:root /aur/kyp
+          git -C /aur/kyp config user.name "goreleaser-bot"
+          git -C /aur/kyp config user.email "goreleaser@stickpro"
+          git -C /aur/kyp add PKGBUILD .SRCINFO
+          git -C /aur/kyp diff --staged --quiet && echo "No changes" && exit 0
+          git -C /aur/kyp commit -m "update to ${{ steps.meta.outputs.tag }}"
+          git -C /aur/kyp push
 
-      - name: Push to AUR
+      - name: Update kyp-gui AUR
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          SHA: ${{ steps.meta.outputs.sha256 }}
         run: |
-          cd /aur-kyp
-          git config user.name "goreleaser-bot"
-          git config user.email "goreleaser@stickpro"
-          git add PKGBUILD .SRCINFO
-          git diff --staged --quiet && echo "No changes" && exit 0
-          git commit -m "update to ${{ steps.version.outputs.version }}"
-          git push
+          git clone ssh://aur@aur.archlinux.org/kyp-gui.git /aur/kyp-gui
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" /aur/kyp-gui/PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" /aur/kyp-gui/PKGBUILD
+          sed -i "s/^sha256sums=.*/sha256sums=('${SHA}')/" /aur/kyp-gui/PKGBUILD
+          chown -R builder:builder /aur/kyp-gui
+          cd /aur/kyp-gui && sudo -u builder makepkg --printsrcinfo > /tmp/SRCINFO_gui && cp /tmp/SRCINFO_gui .SRCINFO
+          chown -R root:root /aur/kyp-gui
+          git -C /aur/kyp-gui config user.name "goreleaser-bot"
+          git -C /aur/kyp-gui config user.email "goreleaser@stickpro"
+          git -C /aur/kyp-gui add PKGBUILD .SRCINFO
+          git -C /aur/kyp-gui diff --staged --quiet && echo "No changes" && exit 0
+          git -C /aur/kyp-gui commit -m "update to ${{ steps.meta.outputs.tag }}"
+          git -C /aur/kyp-gui push
