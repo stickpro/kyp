@@ -15,7 +15,7 @@ type EntryDTO struct {
 	ID            *string `json:"id"`
 	Title         string  `json:"title"`
 	Username      *string `json:"username"`
-	Password      *string `json:"password"`
+	Password      *string `json:"password"` //nolint:gosec // we need to handle password as string for bubbletea textinput, but we encrypt it before storing
 	URL           *string `json:"url"`
 	Notes         *string `json:"notes"`
 	TOTPSecret    *string `json:"totpSecret"`
