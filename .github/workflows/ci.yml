@@ -35,10 +35,10 @@ jobs:
         run: go mod download
 
       - name: Build
-        run: go build ./...
+        run: go build -tags webkit2_41 ./...
 
       - name: Test
-        run: go test ./... -race -count=1
+        run: go test -tags webkit2_41 ./... -race -count=1
 
   lint:
     name: Lint
@@ -67,3 +67,4 @@ jobs:
       - uses: golangci/golangci-lint-action@v7
         with:
           version: v2.10.1
+          args: --build-tags webkit2_41

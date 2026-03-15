@@ -61,7 +61,10 @@ jobs:
       - name: Build (Linux & Windows)
         if: runner.os != 'macOS'
         working-directory: cmd/kyp-gui
-        run: wails build -platform ${{ matrix.platform }} -o ${{ matrix.output }}
+        run: |
+          TAGS=""
+          if [ "${{ runner.os }}" = "Linux" ]; then TAGS="-tags webkit2_41"; fi
+          wails build -platform ${{ matrix.platform }} -o ${{ matrix.output }} $TAGS
 
       # macOS: build with default name, then zip the .app bundle
       - name: Build (macOS)
