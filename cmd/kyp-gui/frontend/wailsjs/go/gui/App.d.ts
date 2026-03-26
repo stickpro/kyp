@@ -22,6 +22,8 @@ export function ListVaults():Promise<Array<string>>;
 
 export function Lock():Promise<void>;
 
+export function ReportActivity():Promise<void>;
+
 export function Unlock(arg1:string,arg2:string):Promise<void>;
 
 export function UpdateEntry(arg1:string,arg2:gui.EntryDTO):Promise<void>;
