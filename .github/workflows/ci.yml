@@ -66,5 +66,6 @@ jobs:
 
       - uses: golangci/golangci-lint-action@v7
         with:
-          version: v2.10.1
+          version: v2.14.0
+          install-mode: goinstall
           args: --build-tags webkit2_41

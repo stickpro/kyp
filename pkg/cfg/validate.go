@@ -10,12 +10,12 @@ import (
 
 	"github.com/cristalhq/aconfig"
 	"github.com/go-playground/validator/v10"
-	"github.com/stickpro/go-store/pkg/util/structs"
+	"github.com/stickpro/kyp/pkg/util/structs"
 )
 
 // ValidateConfig validates config struct with environment variables and custom validation functions.
 func ValidateConfig(cfg any, opts ...Option) error {
-	if reflect.ValueOf(cfg).Kind() != reflect.Ptr {
+	if reflect.ValueOf(cfg).Kind() != reflect.Pointer {
 		return fmt.Errorf("config must be a pointer")
 	}
 

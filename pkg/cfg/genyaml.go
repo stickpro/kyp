@@ -11,7 +11,7 @@ import (
 )
 
 func GenerateYamlTemplate(cfg any, filePath string, opts ...Option) error {
-	if reflect.ValueOf(cfg).Kind() != reflect.Ptr {
+	if reflect.ValueOf(cfg).Kind() != reflect.Pointer {
 		return fmt.Errorf("config must be a pointer")
 	}
 
