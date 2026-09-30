@@ -23,7 +23,7 @@ import (
 //		logger.Fatalf("could not load configuration: %v", err)
 //	}
 func LoadForTests(cfg any, opts ...Option) error {
-	if reflect.ValueOf(cfg).Kind() != reflect.Ptr {
+	if reflect.ValueOf(cfg).Kind() != reflect.Pointer {
 		return fmt.Errorf("config must be a pointer")
 	}
 

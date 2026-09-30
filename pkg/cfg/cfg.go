@@ -46,7 +46,7 @@ type config struct {
 //		logger.Fatalf("could not load configuration: %v", err)
 //	}
 func Load(cfg any, opts ...Option) error {
-	if reflect.ValueOf(cfg).Kind() != reflect.Ptr {
+	if reflect.ValueOf(cfg).Kind() != reflect.Pointer {
 		return fmt.Errorf("config must be a pointer")
 	}
 

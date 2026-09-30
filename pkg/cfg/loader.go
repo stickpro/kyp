@@ -10,7 +10,7 @@ import (
 
 // GetConfigLoader returns aconfig loader instance
 func GetConfigLoader(cfg any, opts ...Option) (*aconfig.Loader, error) {
-	if reflect.ValueOf(cfg).Kind() != reflect.Ptr {
+	if reflect.ValueOf(cfg).Kind() != reflect.Pointer {
 		return nil, fmt.Errorf("config must be a pointer")
 	}
 

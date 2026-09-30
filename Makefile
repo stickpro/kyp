@@ -60,7 +60,7 @@ run-server: build-server
 	$(OUT_BIN_SERVER) $(filter-out $@,$(MAKECMDGOALS))
 
 run-gui:
-	cd ./cmd/kyp-gui && wails dev
+	cd ./cmd/kyp-gui && wails dev -tags webkit2_41
 #liner
 lint:
 	golangci-lint run --show-stats

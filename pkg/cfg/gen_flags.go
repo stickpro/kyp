@@ -10,7 +10,7 @@ import (
 )
 
 func GenerateFlags(cfg any, opts ...Option) (string, error) {
-	if reflect.ValueOf(cfg).Kind() != reflect.Ptr {
+	if reflect.ValueOf(cfg).Kind() != reflect.Pointer {
 		return "", fmt.Errorf("config must be a pointer")
 	}
 
