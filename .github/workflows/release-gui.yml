@@ -161,7 +161,8 @@ jobs:
           cd /tmp/kyp-gui-bin
           git config user.name "goreleaser-bot"
           git config user.email "goreleaser@stickpro"
-          makepkg --printsrcinfo > .SRCINFO
+          docker run --rm -v "$PWD":/pkg -w /pkg archlinux:latest bash -c \
+            'useradd -m builder && su builder -c "makepkg --printsrcinfo"' > .SRCINFO
           git add PKGBUILD .SRCINFO
           git commit -m "Update to ${PKGVER}"
           git push
